@@ -115,8 +115,8 @@ Yes, if you must, you can use Hadoop for the Long Term Storage and Processing
 Tier implementation. In later installments, we will explore an implementation of
 the above Big Data Design Pattern using the following:
 
-- Scala Programming Language
-- Play Runtime Environment
+- Java Core Library
+- Play & Scala Runtime Environment
 - SQS for Fault Tolerance and Error Recovery
 - S3 for Long Term Storage
 - ElastiCache for the Input & Read Models
