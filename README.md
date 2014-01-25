@@ -120,7 +120,6 @@ the above Big Data Design Pattern using the following:
 - SQS for Fault Tolerance and Error Recovery
 - S3 for Long Term Storage
 - ElastiCache for the Input & Read Models
-- CloudWatch for Runtime Introspection
 - EC2 for the Deployment Environment
 - NGINX for the Web Proxy
 
