@@ -103,7 +103,7 @@
     <script>
         $(document).ready(function(){
             $.ajax({
-                url: 'README.md',
+                url: '../README.md',
                 dataType: 'text',
                 success: function(data){
                     var markdownHtml= markdown.toHTML(data);

@@ -109,7 +109,7 @@ eventually the system coalesces around four pieces:
 
 Here is an obligatory diagram:
 
-![BigDataDesignPattern](images/BigDataDesignPattern.png)
+![BigDataDesignPattern](http://bigdatahowto.info/images/BigDataDesignPattern.png)
 
 Yes, if you must, you can use Hadoop for the Long Term Storage and Processing
 Tier implementation. In later installments, we will explore an implementation of
@@ -117,17 +117,16 @@ the above Big Data Design Pattern using the following:
 
 - Scala Programming Language
 - Play Runtime Environment
-- Play's default in-memory database for the Input Model
 - SQS for Fault Tolerance and Error Recovery
 - S3 for Long Term Storage
-- ElastiCache for the Read Model
+- ElastiCache for the Input & Read Models
 - CloudWatch for Runtime Introspection
 - EC2 for the Deployment Environment
 - NGINX for the Web Proxy
 
 RESTful JSON services are used to interface with the Input & Read models, as
 well as for internal communications. Eventually the goal is to make a demo
-application available on this site, and have an EC2 AMI available to play around
+application available on the site, and have an EC2 AMI available to play around
 with.
 
 ###Reference
