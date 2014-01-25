@@ -1,0 +1,138 @@
+<!DOCTYPE html>
+<html>
+<head>
+
+    <!-- Bootstrap stuff -->
+    <meta charset="utf-8">
+    <meta http-equiv="X-UA-Compatible" content="IE=edge">
+    <meta id="viewport" content="width=device-width, initial-scale=1.0">
+    <meta id="description" content="Howto describing a high level view of big data design patterns and architecture.">
+    <meta id="author" content="Tim Fulmer">
+    <link rel="shortcut icon" href="favicon.png">
+
+    <!-- Bootstrap core CSS -->
+    <link href="css/bootstrap.css" rel="stylesheet">
+
+    <!-- HTML5 shim and Respond.js IE8 support of HTML5 elements and media queries -->
+    <!--[if lt IE 9]>
+    <script src="https://oss.maxcdn.com/libs/html5shiv/3.7.0/html5shiv.js"></script>
+    <script src="https://oss.maxcdn.com/libs/respond.js/1.3.0/respond.min.js"></script>
+    <![endif]-->
+
+    <title>BigDataHowto.info</title>
+
+    <!-- favicon stuff from http://realfavicongenerator.net -->
+    <link rel="apple-touch-icon" sizes="57x57" href="/apple-touch-icon-57x57.png">
+    <link rel="apple-touch-icon" sizes="114x114" href="/apple-touch-icon-114x114.png">
+    <link rel="apple-touch-icon" sizes="72x72" href="/apple-touch-icon-72x72.png">
+    <link rel="apple-touch-icon" sizes="144x144" href="/apple-touch-icon-144x144.png">
+    <link rel="apple-touch-icon" sizes="60x60" href="/apple-touch-icon-60x60.png">
+    <link rel="apple-touch-icon" sizes="120x120" href="/apple-touch-icon-120x120.png">
+    <link rel="apple-touch-icon" sizes="76x76" href="/apple-touch-icon-76x76.png">
+    <link rel="apple-touch-icon" sizes="152x152" href="/apple-touch-icon-152x152.png">
+    <link rel="icon" type="image/png" href="/favicon-196x196.png" sizes="196x196">
+    <link rel="icon" type="image/png" href="/favicon-160x160.png" sizes="160x160">
+    <link rel="icon" type="image/png" href="/favicon-96x96.png" sizes="96x96">
+    <link rel="icon" type="image/png" href="/favicon-32x32.png" sizes="32x32">
+    <link rel="icon" type="image/png" href="/favicon-16x16.png" sizes="16x16">
+    <meta id="msapplication-TileColor" content="#da532c">
+    <meta id="msapplication-TileImage" content="/mstile-144x144.png">
+</head>
+<body>
+    <div class="container">
+        <div class="row">
+            <div class="col-md-3">
+                <nav class="navbar affix collapse navbar-collapse" role="navigation" id="navigation">
+                    <div class="navbar-header">
+                        <a class="navbar-brand" href="#"><img src="favicon-32x32.png"/>BigDataHowto</a>
+                    </div>
+                    <ul class="nav nav-pills nav-stacked">
+                        <li id="aboutLi"><a href="#about">About the Author</a></li>
+                    </ul>
+                </nav>
+            </div>
+            <div id="document" class="col-md-9">
+                <div id="aboutDiv" class="well">
+                    <a id="about"></a><h3>About the Author</h3>
+                    <p>
+                        Tim Fulmer enjoys building large applications to scale, while understanding every
+                        large application starts out as a small one.  Tim has extensive experience providing
+                        technology leadership to early- and mid-stage startup companies, most recently
+                        <a href="http://www.thinkpassenger.com">Passenger</a> and
+                        <a href="http://www.acemetrix.com">AceMetrix</a>.
+                    </p>
+                    <p>
+                        Connect with Tim Fulmer on
+                        <a href="http://www.linkedin.com/in/timfulmer/">LinkedIn</a>
+                    </p>
+                </div>
+                <div class="well">
+                    <!-- START: Livefyre Embed -->
+                    <div id="livefyre-comments"></div>
+                    <script type="text/javascript" src="http://zor.livefyre.com/wjs/v3.0/javascripts/livefyre.js"></script>
+                    <script type="text/javascript">
+                        (function () {
+                            var articleId = fyre.conv.load.makeArticleId(null);
+                            fyre.conv.load({}, [{
+                                el: 'livefyre-comments',
+                                network: "livefyre.com",
+                                siteId: "351837",
+                                articleId: articleId,
+                                signed: false,
+                                collectionMeta: {
+                                    articleId: articleId,
+                                    url: fyre.conv.load.makeCollectionUrl()
+                                }
+                            }], function() {});
+                        }());
+                    </script>
+                    <!-- END: Livefyre Embed -->
+                </div>
+
+                <div class="text-center small">copyright &copy; 2014</div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Bootstrap core JavaScript
+    ================================================== -->
+    <!-- Placed at the end of the document so the pages load faster -->
+    <script src="js/jquery-2.1.0.min.js"></script>
+    <script src="js/bootstrap.min.js"></script>
+    <script src="js/markdown.js"></script>
+    <script>
+        $(document).ready(function(){
+            $.ajax({
+                url: 'README.md',
+                dataType: 'text',
+                success: function(data){
+                    var markdownHtml= markdown.toHTML(data);
+                    var markdownDom= $.parseHTML(markdownHtml);
+                    $("<div id='jumbotronDiv' class='jumbotron'></div>"
+                    ).insertBefore("#aboutDiv");
+                    var divId= "jumbotronDiv";
+                    markdownDom.forEach(function(element){
+                        if( element.nodeName== 'H2'
+                                || element.nodeName== 'H3'){
+                            divId= element.firstChild.nodeValue.replace(
+                                    /\W/g, '');
+                            $("<div id='"+ divId+ "' class='well'></div>"
+                            ).insertBefore("#aboutDiv");
+                            $("#"+divId).append(
+                                    "<a name='"+ divId+ "Anchor'></a>");
+                            $("<li><a href='#"+ divId+ "Anchor'>"+
+                                    element.firstChild.nodeValue+ "</a></li>"
+                            ).insertBefore("#aboutLi");
+                        }
+                        $("#"+divId).append(element);
+                        if( element.nodeName== 'H1'){
+                            $("#"+divId).append("<p>&nbsp;</p>");
+                        }
+                    });
+                }
+            });
+
+        })
+    </script>
+</body>
+</html>
