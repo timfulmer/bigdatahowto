@@ -55,7 +55,7 @@ word:
     GET /public/<word>/count
 ```
 
-Returns the count property of the meta data stored with key '\<word\>'.
+Returns the count property of the meta data stored with key `<word>`.
 
 ####Submit word
 Submit a word to the system for counting:
