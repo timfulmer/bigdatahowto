@@ -13,8 +13,6 @@ all stems within a word.  "Hadoop" decomposes into "H", "Ha", "Had", etc.  A web
 interface accepts words, showing the occurrence count of the
 current letter combination in response to user typing.
 
-<Hack together visual here.>
-
 When a user submits a
 letter combination, it is
 added to the system.  Status updates tell the user when their new word has been
