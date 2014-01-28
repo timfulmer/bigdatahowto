@@ -27,7 +27,7 @@ We'll allow up to 7 characters, all lower case.  This gives us an initial search
 space of:
 
 ```
-   (26^7 + 26^6 + 26^5 + 26^4 + 26^3 + 26^2 + 26^1)/(1024*1024*1024) ~= 7.8GB
+   (26^7 + 26^6 + 26^5 + 26^4 + 26^3 + 26^2 + 26^1)/(1024*1024*1024) ~ 7.8GB
 ```
 
 For raw data, in a worse case / fully populated scenario.  Our stemming
@@ -63,7 +63,7 @@ Submit a word to the system for counting:
 ```
     POST /public/<word> "function(env,word,meta){
         // Define stem behavior.
-        env.persistFunction(env,word,meta){
+        env.persistFunction= function(env,word,meta){
             // Keep track of where data comes from.
             meta.type='processed';
             // Update count returned from GET request.
