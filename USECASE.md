@@ -54,6 +54,7 @@ Returns the count property of the meta data stored with key '<word>'.
 
  - Submit word: Submit a word to the system for counting;
 
+```
     POST /public/<word> "function(env,word,meta){
         // Define stem behavior.
         env.persistFunction(env,word,meta){
@@ -75,6 +76,7 @@ Returns the count property of the meta data stored with key '<word>'.
         }
         return split;
     }"
+```
 
 Returns a Job UUID.
 
