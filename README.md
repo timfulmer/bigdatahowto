@@ -112,21 +112,20 @@ Here is an obligatory diagram:
 ![BigDataDesignPattern](http://bigdatahowto.info/images/BigDataDesignPattern.png)
 
 Yes, if you must, you can use Hadoop for the Long Term Storage and Processing
-Tier implementation. In later installments, we will explore an implementation of
+Tier implementation. In later installments, we'll explore an implementation of
 the above Big Data Design Pattern using the following:
 
 - Java Core Library
 - Play & Scala Runtime Environment
 - SQS for Fault Tolerance and Error Recovery
 - S3 for Long Term Storage
-- ElastiCache for the Input & Read Models
-- EC2 for the Deployment Environment
-- NGINX for the Web Proxy
+- ElastiCache for Input & Read Models
+- Deployed on EC2
+- NGINX Web Proxy
 
 RESTful JSON services are used to interface with the Input & Read models, as
-well as for internal communications. Eventually the goal is to make a demo
-application available on the site, and have an EC2 AMI available to play around
-with.
+well as for internal communication. Eventually the goal is to publish a demo
+application on the site, and have an EC2 AMI available to play around with.
 
 ###Reference
 
