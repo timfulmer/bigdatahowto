@@ -124,7 +124,6 @@ Limitations:
 
  - Keys up to 30-ish characters;
  - Message object up to 1MB;
- - JS runtime up to 4MB.
 
 Options:
 
