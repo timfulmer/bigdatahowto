@@ -26,7 +26,9 @@ This gives us a nice example with all three aspects of a modern Big Data system:
 We'll allow up to 7 characters, all lower case.  This gives us an initial search
 space of:
 
+```
    (26^7 + 26^6 + 26^5 + 26^4 + 26^3 + 26^2 + 26^1)/(1024*1024*1024) ~= 7.8GB
+```
 
 For raw data, in a worse case / fully populated scenario.  Our stemming
 algorithm adds another ~ 350% to
@@ -48,7 +50,9 @@ Use case has following actions:
  - Query word: Ask the system the current count of a letter combination, or
  word;
 
+```
     GET /public/<word>/count
+```
 
 Returns the count property of the meta data stored with key '<word>'.
 
@@ -82,7 +86,9 @@ Returns a Job UUID.
 
  - Query Job: Query the status of a word submission.
 
+```
     GET /jobs/<uuid>
+```
 
 Returns Job status.
 
