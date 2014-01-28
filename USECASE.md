@@ -47,8 +47,9 @@ functions to be associated with data requests.
 
 Use case has following actions:
 
- - Query word: Ask the system the current count of a letter combination, or
- word;
+####Query word
+Ask the system the current count of a letter combination, or
+word;
 
 ```
     GET /public/<word>/count
@@ -56,7 +57,8 @@ Use case has following actions:
 
 Returns the count property of the meta data stored with key '<word>'.
 
- - Submit word: Submit a word to the system for counting;
+####Submit word
+Submit a word to the system for counting;
 
 ```
     POST /public/<word> "function(env,word,meta){
@@ -84,7 +86,8 @@ Returns the count property of the meta data stored with key '<word>'.
 
 Returns a Job UUID.
 
- - Query Job: Query the status of a word submission.
+####Query Job
+Query the status of a word submission.
 
 ```
     GET /jobs/<uuid>
