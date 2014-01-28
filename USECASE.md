@@ -26,7 +26,7 @@ This gives us a nice example with all three aspects of a modern Big Data system:
 We'll allow up to 7 characters, all lower case.  This gives us an initial search
 space of:
 
- (26^7 + 26^6 + 26^5 + 26^4 + 26^3 + 26^2 + 26^1)/(1024*1024*1024) ~= 7.8GB
+   (26^7 + 26^6 + 26^5 + 26^4 + 26^3 + 26^2 + 26^1)/(1024*1024*1024) ~= 7.8GB
 
 For raw data, in a worse case / fully populated scenario.  Our stemming
 algorithm adds another ~ 350% to
@@ -48,39 +48,39 @@ Use case has following actions:
  - Query word: Ask the system the current count of a letter combination, or
  word;
 
-GET /public/<word>/count
+    GET /public/<word>/count
 
 Returns the count property of the meta data stored with key '<word>'.
 
  - Submit word: Submit a word to the system for counting;
 
-POST /public/<word> "function(env,word,meta){
-    // Define stem behavior.
-    env.persistFunction(env,word,meta){
-        // Keep track of where data comes from.
-        meta.type='processed';
-        // Update count returned from GET request.
-        if(!meta.count) meta.count= 0;
-        meta.count= meta.count+ 1;
-    }
-    // Input validation.
-    if(!word || word.length>7) return false;
-    // Can't go back and infer later.
-    meta.type='raw';
-    // Decompose into stems, and persist each one.
-    var split= [];
-    for(var i=0; i<word.length;i++){
-        split.push({key:word.substring(0,i),
-                persist:env.persistFunction(env,word,meta)});
-    }
-    return split;
-}"
+    POST /public/<word> "function(env,word,meta){
+        // Define stem behavior.
+        env.persistFunction(env,word,meta){
+            // Keep track of where data comes from.
+            meta.type='processed';
+            // Update count returned from GET request.
+            if(!meta.count) meta.count= 0;
+            meta.count= meta.count+ 1;
+        }
+        // Input validation.
+        if(!word || word.length>7) return false;
+        // Can't go back and infer later.
+        meta.type='raw';
+        // Decompose into stems, and persist each one.
+        var split= [];
+        for(var i=0; i<word.length;i++){
+            split.push({key:word.substring(0,i),
+                    persist:env.persistFunction(env,word,meta)});
+        }
+        return split;
+    }"
 
 Returns a Job UUID.
 
  - Query Job: Query the status of a word submission.
 
-GET /jobs/<uuid>
+    GET /jobs/<uuid>
 
 Returns Job status.
 
