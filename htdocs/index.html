@@ -37,11 +37,6 @@
     <link rel="icon" type="image/png" href="/favicon-16x16.png" sizes="16x16">
     <meta id="msapplication-TileColor" content="#da532c">
     <meta id="msapplication-TileImage" content="/mstile-144x144.png">
-    <style>
-        #socialDiv{
-            margin-bottom: 20px;
-        }
-    </style>
 </head>
 <body>
     <div id="fb-root"></div>
@@ -52,7 +47,7 @@
         js.src = "//connect.facebook.net/en_US/all.js#xfbml=1";
         fjs.parentNode.insertBefore(js, fjs);
     }(document, 'script', 'facebook-jssdk'));</script>
-    <div class="container">
+    <div class="container main">
         <div class="row">
             <div class="col-md-3">
                 <nav class="navbar affix collapse navbar-collapse" role="navigation" id="navigation">
@@ -62,8 +57,8 @@
                     <ul class="nav nav-pills nav-stacked">
                         <li id="aboutLi"><a href="#about">About the Author</a></li>
                     </ul>
-                    <div id="socialDiv">
-                        <div class="fb-like" data-href="https://developers.facebook.com/docs/plugins/" data-layout="button_count" data-action="like" data-show-faces="true" data-share="true"></div>
+                    <div>
+                        <div class="fb-like" data-href="https://bigdatahowto.info/" data-layout="button_count" data-action="like" data-show-faces="true" data-share="true"></div>
                         <br/>
                         <a href="https://twitter.com/share" class="twitter-share-button">Tweet</a>
                         <script>!function(d,s,id){var js,fjs=d.getElementsByTagName(s)[0],p=/^http:/.test(d.location)?'http':'https';if(!d.getElementById(id)){js=d.createElement(s);js.id=id;js.src=p+'://platform.twitter.com/widgets.js';fjs.parentNode.insertBefore(js,fjs);}}(document, 'script', 'twitter-wjs');</script>
@@ -139,39 +134,55 @@
     <script src="js/jquery-2.1.0.min.js"></script>
     <script src="js/bootstrap.min.js"></script>
     <script src="js/markdown.js"></script>
+    <script src="js/sammy-latest.min.js"></script>
     <script>
         $(document).ready(function(){
+            Sammy(function() {
+                this.get('#/design', function(context) {
+                    renderMarkdown('USECASE.md');
+                });
+                this.get('', function(context) {
+                    renderMarkdown('README.md');
+                });
+            }).run();
+        });
+        function renderMarkdown(markdownFile){
+            $(".added").remove();
             $.ajax({
-                url: 'http://bigdatahowto.info/README.md',
+                url: 'http://bigdatahowto.info/'+ markdownFile,
                 dataType: 'text',
                 success: function(data){
                     var markdownHtml= markdown.toHTML(data);
                     var markdownDom= $.parseHTML(markdownHtml);
-                    $("<div id='jumbotronDiv' class='jumbotron'></div>"
-                    ).insertBefore("#aboutDiv");
                     var divId= "jumbotronDiv";
+                    $("<div id='"+divId +"' class='jumbotron added'></div>"
+                    ).insertBefore("#aboutDiv");
                     markdownDom.forEach(function(element){
                         if( element.nodeName== 'H2'
                                 || element.nodeName== 'H3'){
+                            if(divId=='jumbotronDiv'){
+                                $("#"+divId).append("<div style='text-align: center;'><ul class='pagination'>"+
+                                        "<li><a href='#'>&laquo;</a></li>"+
+                                        "<li><a href='#'>1</a></li>"+
+                                        "<li><a href='#/design'>2</a></li>"+
+                                        "<li><a href='#/design'>&raquo;</a></li>"+
+                                        "</ul></div>");
+                            }
                             divId= element.firstChild.nodeValue.replace(
                                     /\W/g, '');
-                            $("<div id='"+ divId+ "' class='well'></div>"
+                            $("<div id='"+ divId+ "' class='well added'></div>"
                             ).insertBefore("#aboutDiv");
                             $("#"+divId).append(
                                     "<a name='"+ divId+ "Anchor'></a>");
-                            $("<li><a href='#"+ divId+ "Anchor'>"+
+                            $("<li class='added'><a href='#"+ divId+ "Anchor'>"+
                                     element.firstChild.nodeValue+ "</a></li>"
                             ).insertBefore("#aboutLi");
                         }
                         $("#"+divId).append(element);
-                        if( element.nodeName== 'H1'){
-                            $("#"+divId).append("<p>&nbsp;</p>");
-                        }
                     });
                 }
             });
-
-        })
+        }
     </script>
 </body>
 </html>
