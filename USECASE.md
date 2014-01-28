@@ -49,16 +49,16 @@ Use case has following actions:
 
 ####Query word
 Ask the system the current count of a letter combination, or
-word;
+word:
 
 ```
     GET /public/<word>/count
 ```
 
-Returns the count property of the meta data stored with key '<word>'.
+Returns the count property of the meta data stored with key '\<word\>'.
 
 ####Submit word
-Submit a word to the system for counting;
+Submit a word to the system for counting:
 
 ```
     POST /public/<word> "function(env,word,meta){
@@ -78,7 +78,7 @@ Submit a word to the system for counting;
         var split= [];
         for(var i=0; i<word.length;i++){
             split.push({key:word.substring(0,i),
-                    persist:env.persistFunction(env,word,meta)});
+                    persist:env.persistFunction});
         }
         return split;
     }"
@@ -87,7 +87,7 @@ Submit a word to the system for counting;
 Returns a Job UUID.
 
 ####Query Job
-Query the status of a word submission.
+Query the status of a word submission:
 
 ```
     GET /jobs/<uuid>
