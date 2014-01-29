@@ -33,9 +33,9 @@ space of:
 For raw data, in a worse case / fully populated scenario.  Our stemming
 algorithm adds another ~ 350% to
 the raw data size.  We're looking at an overall search space of around 35GB when
-fully populated.  Which fits nicely into an S3 bucket.
+fully populated.  Which fits easily into an S3 bucket.
 
-Our free-tier ElastiCache instance can only hold 256MB in memory.  S3 is used as
+A free-tier ElastiCache instance can only hold 256MB in memory.  S3 is used as
 a fallback.
 
 ##Interface Design
@@ -45,7 +45,7 @@ makes
 integrating with web technologies easy.  Interface is generalized, allowing
 functions to be associated with data requests.
 
-Use case has following actions:
+Our use case has the following actions:
 
 ####Query word
 Ask the system the current count of a letter combination, or
@@ -107,14 +107,17 @@ of three JARs.  The three packages are:
 
  - API: BigData API and helper classes.
 
-####Core:
+####Core
 
- - Repository interface for storing key, meta, UUID & job information;
+ - Resource interface to external system;
  - Queue interface for SQS;
  - Message object: {key[,value][,persist][,delete][,get][,error][,options]};
  - Job state machine;
  - JavaScript runtime;
  - User authentication.
+
+Where Resource implementations interface with S3 & ElastiCache for storage;
+email, WebSockets, etc for notification.
 
 Obligatory diagram:
 
@@ -122,11 +125,17 @@ Obligatory diagram:
 
 Limitations:
 
- - Keys up to 30-ish characters;
- - Message object up to 1MB;
+ - Message object up to xMB (x to be determined by testing);
 
 Options:
 
  - Always perform function (false);
  - Private value (false);
- - Notification (false);
+
+####Defaults
+
+TODO: Fill in defaults designs as they are discovered.
+
+####API
+
+TODO: Fill in API details as they are discovered.
