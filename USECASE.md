@@ -125,6 +125,7 @@ Obligatory diagram:
 
 Limitations:
 
+ - A Message is only retried 5 times before being deleted.
  - Message object up to xMB (x to be determined by testing);
 
 Options:
