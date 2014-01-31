@@ -158,12 +158,16 @@ pointing to `modules/build.gradle`, and we're up and running.
 
 ##Core Interfaces
 
-Let's trace through our interaction diagram and take it one piece at a time.
+Next up we'll trace through our interaction diagram and flesh out some classes.
+This was done in several passes, with a lot of details in between.  Below we'll
+give test
+cases written with Mockito, and a description of any gotchas found along the
+way.
 
-####Message
+##Message
 
-The first interaction on our diagram is creating a `Message` instance.  We'll
-use TDD in this project, so let's setup a test case:
+The first interaction on our diagram is creating a `Message` instance.  Let's
+setup an empty test case:
 
 ```
 package info.bigdatahowto.core;
@@ -200,6 +204,9 @@ import org.junit.Test;
 import java.util.HashMap;
 import java.util.Map;
 
+import static info.bigdatahowto.core.TestUtils.fakeMessage;
+import static org.apache.commons.collections.MapUtils.isEmpty;
+
 /**
  * @author timfulmer
  */
@@ -208,39 +215,56 @@ public class MessageTest {
     @Test
     public void testMessage(){
 
-        String key= "test-key";
         String value= "test-value";
         Map<String,String> behavior= new HashMap<>();
         Map<String,String> options= new HashMap<>();
         Message message= new Message(
-                "test-key", "test-value", behavior, options);
+                TestUtils.MESSAGE_KEY, "test-value", behavior, options);
 
-        this.assertMessage(key, value, behavior, options, message);
+        this.assertMessage(new MessageKey( TestUtils.MESSAGE_KEY), value,
+                behavior, options, message);
 
         // tf - Test mutation while we're here.
-        message.setKey( key);
-        message.setValue( value);
+        MessageKey messageKey= new MessageKey();
+        message.setMessageKey(messageKey);
+        message.setValue(value);
+        behavior.put( "test-key", "test-value");
         message.setBehavior( behavior);
         message.setOptions( options);
 
-        this.assertMessage(key, value, behavior, options, message);
+        this.assertMessage(messageKey, value, behavior, options, message);
+    }
+
+    @Test
+    public void testResourceKey(){
+
+        Message message= fakeMessage();
+        assert TestUtils.MESSAGE_RESOURCE_KEY.equals( message.resourceKey()):
+                "Message.resourceKey is implemented incorrectly.";
     }
 
     private void assertMessage(
-            String key, String value, Map<String, String> behavior,
+            MessageKey messageKey,String value, Map<String, String> behavior,
             Map<String, String> options, Message message) {
 
-        assert key.equals( message.getKey()):
+        assert message.getMessageKey()!= null && messageKey.equals(
+                message.getMessageKey()):
                 "Message.key is not set correctly.";
         assert value.equals( message.getValue()):
                 "Message.value is not set correctly.";
-        assert behavior== message.getBehavior():
+        assert behavior== message.getBehavior() && behavior.equals(
+                message.getBehavior()):
                 "Message.behavior is not set correctly.";
+        assert isEmpty(behavior)!= message.hasBehavior():
+                "Message.hasBehavior is not implemented correctly.";
         assert options== message.getOptions():
                 "Message.options is not set correctly.";
     }
 }
 ```
+
+We've also added a resourceKey interface.  This returns a key to use when
+storing messages to a resource.  More on resource persistence below.
 
 Let's run our gradle build and see if everything still works:
 
@@ -250,16 +274,55 @@ $ gradle build
 BUILD SUCCESSFUL
 ```
 
-Looking good!  On to the next object.
+Looking good!  You'll notice we've made Message's key it's own top-level object.
+Let's take a look at this one next.
 
-####Job
+##MessageKey
+
+MessageKey uses a convention to identify various pieces of information used to
+access messages within resources, using a path syntax:
+
+```
+//resource-name/user-context/user-key
+```
+
+Here's the test case:
+
+```
+package info.bigdatahowto.core;
+
+import org.junit.Test;
+
+/**
+ * @author timfulmer
+ */
+public class MessageKeyTest {
+
+    @Test
+    public void testMessageKey(){
+
+        String key= "//resource-name/user-context/user-key";
+        MessageKey messageKey= new MessageKey( key);
+        assert "resource-name".equals( messageKey.getResourceName()):
+                "MessageKey.resourceName not initialized correctly.";
+        assert "user-context".equals( messageKey.getUserContext()):
+                "MessageKey.userContext not initialized correctly.";
+        assert "user-key".equals( messageKey.getUserKey()):
+                "MessageKey.userKey not initialized correctly.";
+        assert "user-context/user-key".equals( messageKey.getAggregateRootKey()):
+                "MessageKey.aggregateRootKey not initialized correctly.";
+    }
+}
+```
+
+On to the next object.
+
+##Job
 
 Let's drill down on requirements for Job a little bit more.  We want a UUID to
 identify each Job instance, and probably some metadata like creation and
 modified timestamps.  In fact, these would be good to have on the Message object
-as well.  This is all starting to look very persistent, let's give these objects
-a way to persist themselves as well.  Here's what a super class might look like
-for this, using the Resource interface from below:
+as well.  Here's what a super class might look like for this:
 
 ```
 package info.bigdatahowto.core;
@@ -277,11 +340,10 @@ public class AggregateRootTest {
     @Test
     public void testAggregateRoot(){
 
-        final String testKey= "test-key";
         AggregateRoot aggregateRoot= new AggregateRoot() {
             @Override
-            public String getResourceKey() {
-                return testKey;
+            public String resourceKey() {
+                return "test-key";
             }
         };
 
@@ -312,10 +374,11 @@ public class AggregateRootTest {
 
 Now we make Message and Job extend AggregateRoot.
 
-
-Job should also capture job state & retry information, as well as handle
-transitions between job states.  Let's capture this in a test case too:
-
+Job captures the authentication information of the user making the original
+request.  This is used to authorize message access later.  Job should also
+capture job state & retry information, as well as handle
+transitions between job states.  We've given Job a resourceKey as well, so it
+can be persisted to resources.  Let's capture this in a test case:
 
 ```
 package info.bigdatahowto.core;
@@ -325,6 +388,9 @@ import org.junit.Test;
 import java.lang.reflect.InvocationTargetException;
 import java.lang.reflect.Method;
 
+import static info.bigdatahowto.core.TestUtils.fakeJob;
+import static info.bigdatahowto.core.TestUtils.fakeMessage;
+
 /**
  * @author timfulmer
  */
@@ -333,34 +399,60 @@ public class JobTest {
     @Test
     public void testJob(){
 
-        Message message= new Message();
-        Job job= new Job( message);
+        Message message= fakeMessage();
+        String authentication= "test-authentication";
+        Job job= fakeJob( message, authentication);
 
-        assert message== job.getMessage():
-                "Job.message is not set correctly.";
+        assert message.getMessageKey().equals(job.getMessageKey()):
+                "Job.messageKey is not initialized correctly.";
+        assert authentication.equals( job.getAuthentication()):
+                "Job.authentication is not initialized correctly.";
         assert job.getTries()== 0:
                 "Job.tries is not initialized correctly.";
         assert job.getState()== JobState.Created:
                 "Job.jobState is not initialized correctly.";
+        assert job.getStatus()== null:
+                "Job.status is not initialized correctly.";
 
         //tf - Test mutation.
-        job.setMessage( message);
+        MessageKey messageKey= new MessageKey();
+        job.setMessageKey(messageKey);
+        String mutatedAuthentication= "mutated-authentication";
+        job.setAuthentication( mutatedAuthentication);
         Integer tries= 0;
         job.setTries( tries);
         job.setState( JobState.Complete);
-        assert message== job.getMessage():
-                "Job.message is not set correctly.";
+        String status="test-status";
+        job.setStatus( status);
+        assert !message.getMessageKey().equals(job.getMessageKey())
+                && messageKey.equals( job.getMessageKey()):
+                "Job.messageKey is not set correctly.";
+        assert !authentication.equals( job.getAuthentication())
+                && mutatedAuthentication.equals( job.getAuthentication()):
+                "Job.authentication is not set correctly.";
         assert tries.equals(job.getTries()):
                 "Job.tries is not set correctly.";
         assert JobState.Complete.equals( job.getState()):
                 "Job.state is not set correctly.";
+        assert status.equals( job.getStatus()):
+                "Job.status is not set correctly.";
+    }
+
+    @Test
+    public void testIncrementTries(){
+
+        Job job= fakeJob(fakeMessage());
+        int tries= job.getTries();
+        job.incrementTries();
+        assert tries+1== job.getTries():
+                "Job.incrementTries is not implemented correctly.";
     }
 
     @Test
     public void testToQueued() throws NoSuchMethodException {
 
-        Message message= new Message();
-        Job job= new Job( message);
+        Message message= fakeMessage();
+        Job job= fakeJob(message);
 
         this.tryState(JobState.Queued, job, job.getClass().getMethod( "toQueued"));
         this.tryState(JobState.Processing, job, job.getClass().getMethod( "toQueued"));
@@ -374,23 +466,26 @@ public class JobTest {
     @Test
     public void testToProcessing() throws NoSuchMethodException {
 
-        Message message= new Message();
-        Job job= new Job( message);
+        Message message= fakeMessage();
+        Job job= fakeJob( message);
 
         this.tryState(JobState.Created, job, job.getClass().getMethod( "toProcessing"));
         this.tryState(JobState.Processing, job, job.getClass().getMethod( "toProcessing"));
         this.tryState(JobState.Complete, job, job.getClass().getMethod( "toProcessing"));
         this.tryState(JobState.Error, job, job.getClass().getMethod( "toProcessing"));
 
+        int tries= job.getTries();
         job.setState(JobState.Queued);
         job.toProcessing();
+        assert tries+1== job.getTries():
+                "Job.toProcessing is not incrementing tries";
     }
 
     @Test
     public void testToComplete() throws NoSuchMethodException {
 
-        Message message= new Message();
-        Job job= new Job( message);
+        Message message= fakeMessage();
+        Job job= fakeJob( message);
 
         this.tryState(JobState.Created, job, job.getClass().getMethod( "toComplete"));
         this.tryState(JobState.Queued, job, job.getClass().getMethod( "toComplete"));
@@ -404,8 +499,8 @@ public class JobTest {
     @Test
     public void testToError() throws NoSuchMethodException {
 
-        Message message= new Message();
-        Job job= new Job( message);
+        Message message= fakeMessage();
+        Job job= fakeJob( message);
 
         this.tryState(JobState.Created, job, job.getClass().getMethod( "toError"));
         this.tryState(JobState.Queued, job, job.getClass().getMethod( "toError"));
@@ -414,6 +509,14 @@ public class JobTest {
 
         job.setState(JobState.Processing);
         job.toError();
+    }
+
+    @Test
+    public void testResourceKey(){
+
+        Job job= fakeJob( fakeMessage());
+        assert job.getUuid().toString().equals( job.resourceKey()):
+                "Job.resourceKey is not implemented correctly.";
     }
 
     private void tryState(JobState state, Job job, Method stateChange) {
@@ -429,14 +532,19 @@ public class JobTest {
 }
 ```
 
+As you can see there is a lot of test around the state transitions.  Since this
+is the main gate mechanism, keeping data flowing correctly through the system,
+the test coverage seems warranted :)
+
 Gradle build, check, moving on.
 
-####Queue
+##Queue
 
 We'll want to push messages into the queue, pop messages out of the queue, and
-delete messages.  Let's make this an interface, since it's purely an artifact of
-the messaging system.  And it's a good excuse to introduce Mockito, by adding a
-bd-core/build.gradle file containing:
+delete messages.  We also want Queue to be extensible, so we can implement
+specific queuing technologies later.  Queue is responsible for persisting the
+messages it's processing to resources too.  Which is a great excuse to
+introduce Mockito!  Let's add a bd-core/build.gradle file containing:
 
 ```
 dependencies {
@@ -445,40 +553,10 @@ dependencies {
 }
 ```
 
-Here's a test case documenting the Queue interface:
-
-```
-package info.bigdatahowto.core;
-
-import org.junit.Test;
-
-import static org.mockito.Mockito.mock;
-import static org.mockito.Mockito.when;
-
-/**
- * @author timfulmer
- */
-public class QueueTest {
-
-    @Test
-    public void testQueue(){
-
-        Job job= new Job();
-        Queue queue= mock( Queue.class);
-        when(queue.pop()).thenReturn( job);
-
-        queue.push(job);
-        job= queue.pop();
-        queue.delete( job.getUuid());
-    }
-}
-```
-
-####Resource
-
-A resource is an interface to an external system.  This could be S3, or an email
-server.  A resource has a name to identify it, and operates on a key-value pair.
-`Resource` is implemented as an abstract class to capture common code:
+Here's a test case documenting the Queue class.  Queue is an abstract class to
+capture common queuing code.  You can see we're simply
+extending the abstract Queue class with an anonymous inner class for test.  This
+is a pattern used below as well.
 
 ```
 package info.bigdatahowto.core;
@@ -486,86 +564,93 @@ package info.bigdatahowto.core;
 import org.junit.Before;
 import org.junit.Test;
 
-import java.util.HashMap;
-import java.util.Map;
+import java.util.HashSet;
+import java.util.Set;
 import java.util.UUID;
+
+import static info.bigdatahowto.core.TestUtils.fakeJob;
+import static info.bigdatahowto.core.TestUtils.fakeMessage;
+import static org.mockito.Mockito.*;
 
 /**
  * @author timfulmer
  */
-public class ResourceTest {
+public class QueueTest {
 
-    private final Map<String,String> hackery= new HashMap<>(1);
-    private Resource resource;
+    private final Set<UUID> jobs= new HashSet<>();
+
+    private Resource resourceMock;
+    private Queue queue;
 
     @Before
     public void before(){
 
-        this.hackery.clear();
-        this.resource= new Resource() {
+        this.resourceMock= mock( Resource.class);
+
+        this.queue= new Queue() {
             @Override
-            public void put(String key, String value) {
-                hackery.put(key,value);
+            protected void write(UUID uuid) {
+                jobs.add(uuid);
+            }
+
+            @Override
+            protected UUID read() {
+                return popUuid();
+            }
+
+            @Override
+            protected void delete(UUID uuid) {
+                jobs.remove( uuid);
             }
         };
+        this.queue.setResource(this.resourceMock);
     }
 
     @Test
-    public void testResource(){
+    public void testQueue(){
 
-        String name= "test-name";
-        this.resource.setName(name);
-        assert name.equals( resource.getName()):
-                "Resource.name is not set correctly.";
+        Message message= fakeMessage();
+        String authentication= "test-authentication";
+        this.queue.push( message, authentication);
 
-        // Could be s3, elasticache, firebase, etc.
-        this.resource.put(UUID.randomUUID().toString(),
-                "{'name':'John Smith'," +
-                        "'username':'jsmith'," +
-                        "'password':'41b9df4a217bb3c10b1c339358111b0d'}");
-        // Could be email server.
-        this.resource.put("Super Urgent Subject Line",
-                "Hi There, We noticed you haven't visited us in a while.  We " +
-                        "hope you come back soon.  Cheers, the Team.");
+        Job job= fakeJob();
+        job.setUuid( popUuid());
+        job.setState(JobState.Queued);
+        when(this.resourceMock.get( popUuid().toString(), Job.class)
+                ).thenReturn( job);
+        Job result= this.queue.pop();
+        assert result.getUuid().equals(job.getUuid()):
+                "Queue.push is not writing job correctly.";
+        assert JobState.Processing== job.getState():
+                "Queue.pop is not updating job state correctly.";
+
+        this.queue.error( job);
+        assert this.jobs.size()== 0 && !this.jobs.contains( job.getUuid()):
+                "Queue.error is not deleting job correctly.";
+        assert JobState.Error== job.getState():
+                "Queue.error is not updating job state correctly.";
+
+        verify( this.resourceMock, times(2)).put(job);
     }
 
     @Test
-    public void testStore(){
+    public void testQueue_ErrorMessage(){
 
-        final String testKey= "test-key";
-        AggregateRoot aggregateRoot= new AggregateRoot() {
-            @Override
-            public String getResourceKey() {
-                return testKey;
-            }
-        };
-        this.resource.store( aggregateRoot);
-
-        String value= String.format(
-                "{\"uuid\":\"%s\",\"creationDate\":%s,\"modifiedDate\":%s}",
-                aggregateRoot.getUuid().toString(),
-                aggregateRoot.getCreationDate().getTime(),
-                aggregateRoot.getModifiedDate().getTime());
-        assert this.hackery.containsKey( testKey)
-                && this.hackery.containsValue( value):
-                "Resource.store is not calling Resource.put correctly.";
-
+        Job job= fakeJob();
+        job.setState( JobState.Processing);
+        this.queue.error(job, "test-message");
     }
 
-    @Test( expected = UnsupportedOperationException.class)
-    public void testResource_Get(){
-
-        this.resource.get( "test-key");
+    private final UUID popUuid(){
+        return jobs.iterator().next();
     }
 }
 ```
 
 ####Authenticator
 
-The `Authenticator` acts as a proxy for untrusted code accessing `Resource`
-instances.  We'll defer tying ourselves to an authentication platform
+The `Authenticator` authorizes access to a key.  We'll defer tying ourselves to an authentication platform
 until later, and implement this as an interface for now.
-
 
 ```
 package info.bigdatahowto.core;
@@ -589,7 +674,509 @@ public class AuthenticatorTest {
 }
 ```
 
-####Processor
+##Resource
+
+A resource is an interface to an external system.  This could be S3, or an email
+server.  A resource has a name to identify it, and operates on a key-value pair.
+`Resource` is also implemented as an abstract class, using an anonymous inner
+class for test:
 
 ```
+package info.bigdatahowto.core;
+
+import org.junit.Before;
+import org.junit.Test;
+
+import java.util.HashMap;
+import java.util.Map;
+import java.util.UUID;
+
+import static info.bigdatahowto.core.TestUtils.fakeMessage;
+
+/**
+ * @author timfulmer
+ */
+public class ResourceTest {
+
+    private final Map<String,String> hackery= new HashMap<>(1);
+    private Resource resource;
+
+    @Before
+    public void before(){
+
+        this.hackery.clear();
+        this.resource= new Resource() {
+            @Override
+            public void write(String key, String value) {
+                hackery.put(key,value);
+            }
+
+            @Override
+            public String read(String key) {
+                return hackery.get(key);
+            }
+        };
+    }
+
+    @Test
+    public void testResource(){
+
+        String name= "test-name";
+        this.resource.setName(name);
+        assert name.equals( resource.getName()):
+                "Resource.name is not set correctly.";
+
+        // Could be s3, elasticache, firebase, etc.
+        this.resource.write(UUID.randomUUID().toString(),
+                "{'name':'John Smith'," +
+                        "'username':'jsmith'," +
+                        "'password':'41b9df4a217bb3c10b1c339358111b0d'}");
+        // Could be email server.
+        this.resource.write("Super Urgent Subject Line",
+                "Hi There, We noticed you haven't visited us in a while.  We " +
+                        "hope you come back soon.  Cheers, the Team.");
+    }
+
+    @Test
+    public void testStore(){
+
+        final String testKey= "test-key";
+        AggregateRoot aggregateRoot= new AggregateRoot() {
+            @Override
+            public String resourceKey() {
+                return testKey;
+            }
+        };
+        this.resource.put(aggregateRoot);
+
+        String value= String.format(
+                "{\"uuid\":\"%s\",\"creationDate\":%s,\"modifiedDate\":%s}",
+                aggregateRoot.getUuid().toString(),
+                aggregateRoot.getCreationDate().getTime(),
+                aggregateRoot.getModifiedDate().getTime());
+        assert this.hackery.containsKey( testKey)
+                && this.hackery.containsValue( value):
+                "Resource.put is not calling Resource.write correctly.";
+    }
+
+    @Test( expected = RuntimeException.class)
+    public void testStore_Exception(){
+
+        final String testKey= "test-key";
+        AggregateRoot aggregateRoot= new AggregateRoot() {
+            @Override
+            public String resourceKey() {
+                return testKey;
+            }
+        };
+        this.resource= new Resource() {
+            @Override
+            public void write(String key, String value) {
+                throw new RuntimeException();
+            }
+        };
+        this.resource.put(aggregateRoot);
+    }
+
+    @Test( expected = UnsupportedOperationException.class)
+    public void testRead(){
+
+        this.resource= new Resource() {
+            @Override
+            public void write(String key, String value) {
+                // Noop.
+            }
+        };
+        this.resource.read("test-key");
+    }
+
+    @Test
+    public void testGet(){
+
+        Message message= fakeMessage();
+        this.resource.put( message);
+        Message result= this.resource.get( message.resourceKey(),
+                Message.class);
+        assert message.equals( result):
+                "Resource.get is not calling Resource.read correctly.";
+    }
+}
 ```
+
+##ResourceRoadie
+
+As often happens, a new class was discovered
+while building.  These have been referred to as artifacts of implementation in
+the literature.  I like to call then 'Roadies' :)  This one captures the
+available resources on the system, associates the correct resource for a
+message, and authorizes access to messages within the resource.
+
+```
+package info.bigdatahowto.core;
+
+import org.junit.Before;
+import org.junit.Test;
+
+import java.util.HashMap;
+import java.util.Map;
+
+import static info.bigdatahowto.core.TestUtils.fakeMessage;
+import static org.mockito.Mockito.*;
+
+/**
+ * @author timfulmer
+ */
+public class ResourceRoadieTest {
+
+    private Authenticator authenticatorMock;
+    private Resource resourceMock;
+    private ResourceRoadie resourceRoadie;
+
+    @Before
+    public void before(){
+
+        this.authenticatorMock= mock( Authenticator.class);
+        this.resourceMock= mock( Resource.class);
+
+        this.resourceRoadie= new ResourceRoadie();
+        this.resourceRoadie.setAuthenticator( this.authenticatorMock);
+        Map<String,Resource> resources= new HashMap<>(1);
+        resources.put( TestUtils.MESSAGE_RESOURCE_KEY, this.resourceMock);
+        this.resourceRoadie.setResources( resources);
+    }
+
+    @Test
+    public void testResourceRoadie(){
+
+        String authentication= "test-authentication";
+        when(this.authenticatorMock.authorize( TestUtils.MESSAGE_KEY,
+                authentication)).thenReturn( true);
+        Message message= fakeMessage();
+        when(this.resourceMock.get(TestUtils.MESSAGE_KEY, Message.class)
+                ).thenReturn( message);
+
+        Message result= this.resourceRoadie.accessMessage(
+                message.getMessageKey(), authentication);
+
+        assert result!= null && result.equals( message):
+                "ResourceRoadie.accessMessage is not implemented correctly.";
+
+        this.resourceRoadie.storeMessage(message);
+
+        this.resourceRoadie.storeMessage( message, authentication);
+
+        verify( this.resourceMock, times(2)).put(message);
+        verify( this.authenticatorMock).authorize(
+                TestUtils.MESSAGE_KEY, authentication);
+    }
+
+    @Test
+    public void testUnauthorized(){
+
+        String authentication= "test-authentication";
+        when(this.authenticatorMock.authorize( TestUtils.MESSAGE_KEY,
+                authentication)).thenReturn( false);
+
+        Message message= fakeMessage();
+        Message result= this.resourceRoadie.accessMessage(
+                message.getMessageKey(), authentication);
+
+        assert result== null:
+                "ResourceRoadie.accessMessage is not authenticating correctly.";
+    }
+}
+```
+
+##Processor
+
+Processor seems to have taken on a Controller role, coordinating between
+the queue and resource implementations, handling retry and error conditions,
+and parsing out processing results.
+
+```
+package info.bigdatahowto.core;
+
+import org.junit.Before;
+import org.junit.Test;
+
+import java.util.ArrayList;
+import java.util.List;
+
+import static info.bigdatahowto.core.TestUtils.fakeJob;
+import static info.bigdatahowto.core.TestUtils.fakeMessage;
+import static org.mockito.Mockito.*;
+
+/**
+ * @author timfulmer
+ */
+public class ProcessorTest {
+
+    private final ProcessingResult processingResult=
+            mock( ProcessingResult.class);
+
+    private Queue queueMock;
+    private ResourceRoadie resourceRoadieMock;
+    private Processor processor;
+
+    @Before
+    public void before(){
+
+        this.queueMock= mock( Queue.class);
+        this.resourceRoadieMock= mock( ResourceRoadie.class);
+
+        this.processor= new Processor() {
+            @Override
+            protected ProcessingResult process(Message message) {
+                return processingResult;
+            }
+
+            @Override
+            protected ProcessingResult error(Message message, int tries) {
+                return processingResult;
+            }
+        };
+        this.processor.setQueue( this.queueMock);
+        this.processor.setResourceRoadie( this.resourceRoadieMock);
+    }
+
+    @Test
+    public void testProcessor(){
+
+        Job job= fakeJob();
+        when(this.queueMock.pop()).thenReturn( job);
+
+        Message message= fakeMessage();
+        message.getBehavior().put("test-key", "test-value");
+        when(this.resourceRoadieMock.accessMessage(job.getMessageKey(),
+                job.getAuthentication())).thenReturn(message);
+        when(this.processingResult.isContinueProcessing()).thenReturn( true);
+        when(this.processingResult.getMessage()).thenReturn(message);
+        List<Message> messages= new ArrayList<>(1);
+        messages.add(message);
+        when(this.processingResult.getMessages()).thenReturn(messages);
+
+        this.processor.pullJob();
+
+        verify(this.resourceRoadieMock).storeMessage(message);
+        verify(this.resourceRoadieMock).storeMessage(message,
+                job.getAuthentication());
+        verify(this.queueMock).push(message, job.getAuthentication());
+    }
+
+    @Test
+    public void testProcessor_NullJob(){
+
+        this.processor.pullJob();
+    }
+
+    @Test
+    public void testProcessor_NullMessage(){
+
+        Job job= fakeJob();
+        when(this.queueMock.pop()).thenReturn( job);
+
+        when(this.resourceRoadieMock.accessMessage(job.getMessageKey(),
+                job.getAuthentication())).thenReturn( null);
+          this.processor.pullJob();
+
+        verify(this.queueMock).error(eq(job), anyString());
+    }
+
+    @Test
+    public void testProcessor_NoBehavior(){
+
+        Job job= fakeJob();
+        when(this.queueMock.pop()).thenReturn( job);
+
+        Message message= fakeMessage();
+        when(this.resourceRoadieMock.accessMessage(job.getMessageKey(),
+                job.getAuthentication())).thenReturn(message);
+        when(this.processingResult.getMessage()).thenReturn(message);
+
+        this.processor.pullJob();
+    }
+
+    @Test
+    public void testProcessor_Error(){
+
+        Job job= fakeJob();
+        when(this.queueMock.pop()).thenReturn( job);
+
+        Message message= fakeMessage();
+        message.getBehavior().put("test-key", "test-value");
+        when(this.resourceRoadieMock.accessMessage(job.getMessageKey(),
+                job.getAuthentication())).thenReturn(message);
+        when(this.processingResult.isContinueProcessing()).thenReturn( true);
+        when(this.processingResult.getMessage()).thenReturn(message);
+        List<Message> messages= new ArrayList<>(1);
+        messages.add(message);
+        when(this.processingResult.getMessages()).thenReturn(messages);
+
+        this.processor= new Processor() {
+            @Override
+            protected ProcessingResult process(Message message) {
+                throw new RuntimeException();
+            }
+
+            @Override
+            protected ProcessingResult error(Message message, int tries) {
+                return processingResult;
+            }
+        };
+        this.processor.setQueue( this.queueMock);
+        this.processor.setResourceRoadie( this.resourceRoadieMock);
+        this.processor.pullJob();
+
+        verify(this.resourceRoadieMock).storeMessage(message);
+        verify(this.resourceRoadieMock).storeMessage(message,
+                job.getAuthentication());
+        verify(this.queueMock).push(message, job.getAuthentication());
+    }
+
+    @Test( expected = RuntimeException.class)
+    public void testProcessor_FatalError(){
+
+        Job job= fakeJob();
+        job.setTries(5);
+        when(this.queueMock.pop()).thenReturn( job);
+
+        Message message= fakeMessage();
+        message.getBehavior().put("test-key", "test-value");
+        when(this.resourceRoadieMock.accessMessage(job.getMessageKey(),
+                job.getAuthentication())).thenReturn(message);
+        when(this.processingResult.getMessage()).thenReturn(message);
+        List<Message> messages= new ArrayList<>(1);
+        messages.add(message);
+        when(this.processingResult.getMessages()).thenReturn(messages);
+
+        this.processor= new Processor() {
+            @Override
+            protected ProcessingResult process(Message message) {
+                throw new RuntimeException();
+            }
+
+            @Override
+            protected ProcessingResult error(Message message, int tries) {
+                return null;
+            }
+        };
+        this.processor.setQueue( this.queueMock);
+        this.processor.setResourceRoadie( this.resourceRoadieMock);
+        this.processor.pullJob();
+
+        verify(this.queueMock).error(job);
+    }
+
+    @Test
+    public void testProcessor_NullProcessingResult(){
+
+        Job job= fakeJob();
+        when(this.queueMock.pop()).thenReturn(job);
+
+        Message message= fakeMessage();
+        message.getBehavior().put("test-key", "test-value");
+        when(this.resourceRoadieMock.accessMessage(job.getMessageKey(),
+                job.getAuthentication())).thenReturn(message);
+
+        this.processor= new Processor() {
+            @Override
+            protected ProcessingResult process(Message message) {
+                return null;
+            }
+
+            @Override
+            protected ProcessingResult error(Message message, int tries) {
+                return null;
+            }
+        };
+        this.processor.setQueue(this.queueMock);
+        this.processor.setResourceRoadie( this.resourceRoadieMock);
+        this.processor.pullJob();
+    }
+
+    @Test
+    public void testProcessor_NotContinuing(){
+
+        Job job= fakeJob();
+        when(this.queueMock.pop()).thenReturn( job);
+
+        Message message= fakeMessage();
+        message.getBehavior().put("test-key", "test-value");
+        when(this.resourceRoadieMock.accessMessage(job.getMessageKey(),
+                job.getAuthentication())).thenReturn(message);
+        when(this.processingResult.isContinueProcessing()).thenReturn( false);
+
+        this.processor.pullJob();
+    }
+
+    @Test
+    public void testProcessor_EmptyProcessingResult(){
+
+        Job job= fakeJob();
+        when(this.queueMock.pop()).thenReturn(job);
+
+        Message message= fakeMessage();
+        message.getBehavior().put("test-key", "test-value");
+        when(this.resourceRoadieMock.accessMessage(job.getMessageKey(),
+                job.getAuthentication())).thenReturn(message);
+        when(this.processingResult.getMessage()).thenReturn(null);
+        when(this.processingResult.getMessages()).thenReturn(null);
+
+        this.processor.pullJob();
+    }
+}
+```
+
+##ProcessingResult
+
+Processing can result in a number of outcomes.  A message may stop any
+additional processing, it may modify the metadata for the message being
+processed, and it may create new messages for further processing.
+ProcessingResult captures this information.
+
+```
+package info.bigdatahowto.core;
+
+import org.junit.Test;
+
+import java.util.ArrayList;
+import java.util.List;
+
+import static info.bigdatahowto.core.TestUtils.fakeMessage;
+import static org.apache.commons.collections.CollectionUtils.isEmpty;
+
+/**
+ * @author timfulmer
+ */
+public class ProcessingResultTest {
+
+    @Test
+    public void testProcessingResult(){
+
+        ProcessingResult processingResult= new ProcessingResult();
+        assert processingResult.getMessage()== null:
+                "ProcessingResult.message is not initialized correctly.";
+        assert isEmpty(processingResult.getMessages()):
+                "ProcessingResult.messages is not initialized correctly.";
+        assert processingResult.isContinueProcessing():
+                "ProcessingResult.continueProcessing is not initialized " +
+                        "correctly.";
+
+        Message message= fakeMessage();
+        processingResult.setMessage( message);
+        List<Message> messages= new ArrayList<>( 1);
+        messages.add( message);
+        processingResult.setMessages( messages);
+        processingResult.setContinueProcessing( false);
+        assert message.equals( processingResult.getMessage()):
+                "ProcessingResult.message is not initialized correctly.";
+        assert messages.equals( processingResult.getMessages()):
+                "ProcessingResult.messages is not initialized correctly.";
+        assert !processingResult.isContinueProcessing():
+                "ProcessingResult.continueProcessing is not initialized " +
+                        "correctly.";
+    }
+}
+```
+
+Gradle build, check; first iteration, done!

@@ -94,8 +94,22 @@ public abstract class Processor {
         }
     }
 
+    /**
+     * Applies behavior to data defined in a message.
+     *
+     * @param message Message containing behavior and data.
+     * @return Results of processing.
+     */
     protected abstract ProcessingResult process( Message message);
 
+    /**
+     * Applies error handling to data defined in a message.  This method is
+     * called whenever an unhandled error happens during behavior processing.
+     *
+     * @param message Message containing error handling and data.
+     * @param tries Number of times processing this message has been tried.
+     * @return Results of processing.
+     */
     protected abstract ProcessingResult error( Message message, int tries);
 
     @javax.annotation.Resource

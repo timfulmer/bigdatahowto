@@ -17,10 +17,13 @@ public class JobTest {
     public void testJob(){
 
         Message message= fakeMessage();
-        Job job= fakeJob( message);
+        String authentication= "test-authentication";
+        Job job= fakeJob( message, authentication);
 
         assert message.getMessageKey().equals(job.getMessageKey()):
-                "Job.messageKey is not set correctly.";
+                "Job.messageKey is not initialized correctly.";
+        assert authentication.equals( job.getAuthentication()):
+                "Job.authentication is not initialized correctly.";
         assert job.getTries()== 0:
                 "Job.tries is not initialized correctly.";
         assert job.getState()== JobState.Created:
@@ -31,6 +34,8 @@ public class JobTest {
         //tf - Test mutation.
         MessageKey messageKey= new MessageKey();
         job.setMessageKey(messageKey);
+        String mutatedAuthentication= "mutated-authentication";
+        job.setAuthentication( mutatedAuthentication);
         Integer tries= 0;
         job.setTries( tries);
         job.setState( JobState.Complete);
@@ -39,6 +44,9 @@ public class JobTest {
         assert !message.getMessageKey().equals(job.getMessageKey())
                 && messageKey.equals( job.getMessageKey()):
                 "Job.messageKey is not set correctly.";
+        assert !authentication.equals( job.getAuthentication())
+                && mutatedAuthentication.equals( job.getAuthentication()):
+                "Job.authentication is not set correctly.";
         assert tries.equals(job.getTries()):
                 "Job.tries is not set correctly.";
         assert JobState.Complete.equals( job.getState()):

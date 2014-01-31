@@ -4,12 +4,25 @@ import java.util.ArrayList;
 import java.util.List;
 
 /**
+ * Captures the results of processing or error handling of a message.
+ *
  * @author timfulmer
  */
 public class ProcessingResult {
 
+    /**
+     * The message processed, it may have been modified during processing.
+     */
     private Message message;
+
+    /**
+     * List of new messages created during processing.
+     */
     private List<Message> messages= new ArrayList<>();
+
+    /**
+     * If true, modifications made during processing are propagated.
+     */
     private boolean continueProcessing= true;
 
     public ProcessingResult() {

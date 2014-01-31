@@ -137,8 +137,12 @@ Options:
 
 ####Defaults
 
-Initial pass at implementing defaults includes an in memory queue
-implementation, a JavaScript processor and an S3 resource implementation.
+We'll be building the system above in iterations.  Initial development is scoped
+to implementing an in memory queue, a JavaScript processor, an S3 resource
+and an always allow Authenticator.  SQS, ElastiCache, SpringSecurity and
+potentially other technologies can be
+added once we've built up a test environment and can measure their impact on
+the system.
 
 ####API
 

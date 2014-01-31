@@ -1,16 +1,36 @@
 package info.bigdatahowto.core;
 
 /**
- * TODO: Simplify.
+ * Represents key information for a message.  Keys are used to communicate with
+ * external resources.
  *
  * @author timfulmer
  */
 public class MessageKey {
 
+    /**
+     * Identifies a resource instance.
+     */
     private String resourceName;
-    private String context;
+
+    /**
+     * Arbitrary path information, used to scope data.
+     */
+    private String userContext;
+
+    /**
+     * Unique key identifying a message.
+     */
     private String userKey;
-    private String resourceKey;
+
+    /**
+     * Identifies a message's location within a resource.
+     */
+    private String aggregateRootKey;
+
+    /**
+     * Original string representation of this key.
+     */
     private String key;
 
     public MessageKey() {
@@ -18,25 +38,27 @@ public class MessageKey {
         super();
     }
 
+    /**
+     * Parse string representation of a key:
+     *
+     * //resource-name/user-context/user-key
+     *
+     * @param key Key identifying a message stored within a resource.
+     */
     public MessageKey( String key) {
 
         this();
 
         // TODO: Build up defaults.
-//        if( !key.startsWith( "/")){
-//
-//            key= new StringBuilder(key.length()+ 1).append(
-//                    '/').append( key).toString();
-//        }
 
         this.setKey( key);
         int firstSeparator= key.indexOf("/", 2);
         this.setResourceName( key.substring( 2, firstSeparator));
         int secondSeparator= key.indexOf("/", firstSeparator + 1);
-        this.setContext( key.substring( firstSeparator+ 1,
+        this.setUserContext(key.substring(firstSeparator + 1,
                 secondSeparator));
         this.setUserKey( key.substring( secondSeparator+ 1));
-        this.setResourceKey( key.substring( firstSeparator+ 1));
+        this.setAggregateRootKey(key.substring(firstSeparator + 1));
     }
 
     public String getResourceName() {
@@ -47,12 +69,12 @@ public class MessageKey {
         this.resourceName = resourceName;
     }
 
-    public String getContext() {
-        return context;
+    public String getUserContext() {
+        return userContext;
     }
 
-    public void setContext(String context) {
-        this.context = context;
+    public void setUserContext(String userContext) {
+        this.userContext = userContext;
     }
 
     public String getUserKey() {
@@ -63,12 +85,12 @@ public class MessageKey {
         this.userKey = userKey;
     }
 
-    public String getResourceKey() {
-        return resourceKey;
+    public String getAggregateRootKey() {
+        return aggregateRootKey;
     }
 
-    public void setResourceKey(String resourceKey) {
-        this.resourceKey = resourceKey;
+    public void setAggregateRootKey(String aggregateRootKey) {
+        this.aggregateRootKey = aggregateRootKey;
     }
 
     public String getKey() {
@@ -86,11 +108,11 @@ public class MessageKey {
 
         MessageKey that = (MessageKey) o;
 
-        if (context != null ? !context.equals(that.context) : that.context != null)
+        if (userContext != null ? !userContext.equals(that.userContext) : that.userContext != null)
             return false;
         if (key != null ? !key.equals(that.key) : that.key != null)
             return false;
-        if (resourceKey != null ? !resourceKey.equals(that.resourceKey) : that.resourceKey != null)
+        if (aggregateRootKey != null ? !aggregateRootKey.equals(that.aggregateRootKey) : that.aggregateRootKey != null)
             return false;
         if (resourceName != null ? !resourceName.equals(that.resourceName) : that.resourceName != null)
             return false;
@@ -103,9 +125,9 @@ public class MessageKey {
     @Override
     public int hashCode() {
         int result = resourceName != null ? resourceName.hashCode() : 0;
-        result = 31 * result + (context != null ? context.hashCode() : 0);
+        result = 31 * result + (userContext != null ? userContext.hashCode() : 0);
         result = 31 * result + (userKey != null ? userKey.hashCode() : 0);
-        result = 31 * result + (resourceKey != null ? resourceKey.hashCode() : 0);
+        result = 31 * result + (aggregateRootKey != null ? aggregateRootKey.hashCode() : 0);
         result = 31 * result + (key != null ? key.hashCode() : 0);
         return result;
     }
@@ -114,7 +136,7 @@ public class MessageKey {
     public String toString() {
         return "MessageKey{" +
                 "resourceName='" + resourceName + '\'' +
-                ", context='" + context + '\'' +
+                ", userContext='" + userContext + '\'' +
                 ", userKey='" + userKey + '\'' +
                 ", key='" + key + '\'' +
                 '}';

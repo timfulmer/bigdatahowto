@@ -82,25 +82,25 @@ public abstract class Queue {
     }
 
     /**
-     * Writes a job UUID into the underlying queue.
+     * Writes a UUID into the underlying queue.
      *
-     * @param job UUID of the job to queue.
+     * @param uuid UUID to queue.
      */
-    protected abstract void write( UUID job);
+    protected abstract void write( UUID uuid);
 
     /**
-     * Reads a job UUID from the underlying queue.  Reading must not delete
-     * from the queue underlying .  Repeated calls to read may return the same
+     * Reads a  UUID from the underlying queue.  Reading must not delete
+     * from the underlying queue.  Repeated calls to read may return the same
      * UUID.
      *
-     * @return Job UUID in the queue.
+     * @return UUID in the queue.
      */
     protected abstract UUID read();
 
     /**
-     * Deletes a job from the queue.
+     * Deletes a uuid from the queue.
      *
-     * @param uuid Identifies a job.
+     * @param uuid Uuid to delete.
      */
     protected abstract void delete( UUID uuid);
 

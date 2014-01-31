@@ -28,6 +28,11 @@ public class TestUtils {
 
         String authentication= "test-authentication";
 
+        return fakeJob( message, authentication);
+    }
+
+    static Job fakeJob(Message message, String authentication){
+
         return new Job( message, authentication);
     }
 }
