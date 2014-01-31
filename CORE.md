@@ -122,35 +122,26 @@ Success!  Let's check on the build artifacts, just to make sure we know what's
 going on:
 
 ```
-$ ll
+$ ls -n
 total 24
-drwxr-xr-x   9 timprilfulmer  staff  306 Jan 29 11:46 .
-drwxr-xr-x  13 timprilfulmer  staff  442 Jan 29 14:00 ..
-drwxr-xr-x   3 timprilfulmer  staff  102 Jan 29 11:33 .gradle
-drwxr-xr-x   6 timprilfulmer  staff  204 Jan 29 11:46 bd-api
-drwxr-xr-x   5 timprilfulmer  staff  170 Jan 29 11:46 bd-core
-drwxr-xr-x   6 timprilfulmer  staff  204 Jan 29 11:46 bd-default
--rw-r--r--   1 timprilfulmer  staff  465 Jan 29 11:42 build.gradle
--rw-r--r--   1 timprilfulmer  staff  656 Jan 29 11:46 modules.iml
--rw-r--r--   1 timprilfulmer  staff   42 Jan 29 11:45 settings.gradle
+drwxr-xr-x  6 501  20  204 Jan 30 22:49 bd-api
+drwxr-xr-x  6 501  20  204 Jan 29 16:58 bd-core
+drwxr-xr-x  6 501  20  204 Jan 30 22:53 bd-defaults
+-rw-r--r--  1 501  20  465 Jan 29 11:42 build.gradle
+-rw-r--r--  1 501  20  656 Jan 29 11:46 modules.iml
+-rw-r--r--  1 501  20   42 Jan 29 11:45 settings.gradle
 
-$ ll ./bd-core/build/libs/
+$ ls -n ./bd-api/build/libs/
 total 8
-drwxr-xr-x  3 timprilfulmer  staff   102 Jan 29 11:44 .
-drwxr-xr-x  6 timprilfulmer  staff   204 Jan 29 13:59 ..
--rw-r--r--  1 timprilfulmer  staff  3693 Jan 29 13:59 bd-core-1.0.jar
+-rw-r--r--  1 501  20  298 Jan 29 11:45 bd-api-1.0.jar
 
-$ ll ./bd-default/build/libs/
-total 8
-drwxr-xr-x  3 timprilfulmer  staff  102 Jan 29 11:45 .
-drwxr-xr-x  4 timprilfulmer  staff  136 Jan 29 11:45 ..
--rw-r--r--  1 timprilfulmer  staff  298 Jan 29 11:45 bd-default-1.0.jar
+$ ls -n ./bd-core/build/libs/
+total 16
+-rw-r--r--  1 501  20  5887 Jan 29 19:23 bd-core-1.0.jar
 
-$ ll ./bd-api/build/libs/
+$ ls -n ./bd-defaults/build/libs/
 total 8
-drwxr-xr-x  3 timprilfulmer  staff  102 Jan 29 11:45 .
-drwxr-xr-x  4 timprilfulmer  staff  136 Jan 29 11:45 ..
--rw-r--r--  1 timprilfulmer  staff  298 Jan 29 11:45 bd-api-1.0.jar
+-rw-r--r--  1 501  20  298 Jan 29 11:45 bd-default-1.0.jar
 ```
 
 Everything looks good.  Now we can import our new Gradle module into IntelliJ,
