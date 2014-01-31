@@ -150,9 +150,10 @@ pointing to `modules/build.gradle`, and we're up and running.
 ##Core Interfaces
 
 Next up we'll trace through our interaction diagram and flesh out some classes.
-This was done in several passes, with a lot of details in between.  Below we'll
-give test
-cases written with Mockito, and a description of any gotchas found along the
+This was done in several passes, with a lot of details in between.  Below are
+test
+cases written with Junit & Mockito, and a description of any gotchas found along
+the
 way.
 
 ##Message
@@ -175,7 +176,8 @@ public class MessageTest {
 }
 ```
 
-Let's use the easiest way to create a message for right now, a constructor.  We
+Let's use the easiest way to create a `Message` for right now, a constructor.
+We
 can introduce factory or builder patterns later if we find a need.
 
 Here are our reqs so far for a `Message` instance:
@@ -184,7 +186,7 @@ Here are our reqs so far for a `Message` instance:
 
 We'll notice `persist`, `delete`, `get` and `error` all refer to behavior
 associated with actions on the system.  And `options` is a bag of key-value
-pairs.  Let's make both of these items Maps of Strings to give us some
+pairs.  Let's make both of these items maps of strings to give us some
 extensibility, and add some simple asserts to keep coverage up:
 
 ```
@@ -254,7 +256,7 @@ public class MessageTest {
 }
 ```
 
-We've also added a resourceKey interface.  This returns a key to use when
+We've also added a `resourceKey` interface.  This returns a key to use when
 storing messages to a resource.  More on resource persistence below.
 
 Let's run our gradle build and see if everything still works:
@@ -265,13 +267,14 @@ $ gradle build
 BUILD SUCCESSFUL
 ```
 
-Looking good!  You'll notice we've made Message's key it's own top-level object.
+Looking good!  You'll notice we've made the message key it's own top-level
+object.
 Let's take a look at this one next.
 
 ##MessageKey
 
-MessageKey uses a convention to identify various pieces of information used to
-access messages within resources, using a path syntax:
+`MessageKey` uses a convention to identify various pieces of information used to
+access messages within resources, with a path syntax:
 
 ```
 //resource-name/user-context/user-key
@@ -310,9 +313,11 @@ On to the next object.
 
 ##Job
 
-Let's drill down on requirements for Job a little bit more.  We want a UUID to
-identify each Job instance, and probably some metadata like creation and
-modified timestamps.  In fact, these would be good to have on the Message object
+Let's drill down on requirements for `Job` a little bit more.  We want a `UUID`
+to
+identify each `Job` instance, and probably some metadata like creation and
+modified timestamps.  In fact, these would be good to have on the `Message`
+object
 as well.  Here's what a super class might look like for this:
 
 ```
@@ -363,13 +368,13 @@ public class AggregateRootTest {
 }
 ```
 
-Now we make Message and Job extend AggregateRoot.
+Now we make `Message` and `Job` extend `AggregateRoot`.
 
-Job captures the authentication information of the user making the original
-request.  This is used to authorize message access later.  Job should also
+`Job` captures the authentication information of the user making the original
+request.  This is used to authorize message access later.  `Job` should also
 capture job state & retry information, as well as handle
-transitions between job states.  We've given Job a resourceKey as well, so it
-can be persisted to resources.  Let's capture this in a test case:
+transitions between job states.  We've given `Job` a `resourceKey` as well, so
+it can be persisted to resources.  Let's capture this in a test case:
 
 ```
 package info.bigdatahowto.core;
@@ -532,9 +537,9 @@ Gradle build, check, moving on.
 ##Queue
 
 We'll want to push messages into the queue, pop messages out of the queue, and
-delete messages.  We also want Queue to be extensible, so we can implement
-specific queuing technologies later.  Queue is responsible for persisting the
-messages it's processing to resources too.  Which is a great excuse to
+delete messages.  We also want `Queue` to be extensible, so we can implement
+specific queuing technologies later.  `Queue` is responsible for persisting the
+messages it's processing to resources too.  All of which is a great excuse to
 introduce Mockito!  Let's add a bd-core/build.gradle file containing:
 
 ```
@@ -544,10 +549,10 @@ dependencies {
 }
 ```
 
-Here's a test case documenting the Queue class.  Queue is an abstract class to
-capture common queuing code.  You can see we're simply
-extending the abstract Queue class with an anonymous inner class for test.  This
-is a pattern used below as well.
+Here's a test case documenting the `Queue` class.  `Queue` is an abstract class
+to capture common queuing code.  You can see we're simply
+extending the abstract `Queue` class with an anonymous inner class for test.
+This is a pattern used below as well.
 
 ```
 package info.bigdatahowto.core;
@@ -640,7 +645,8 @@ public class QueueTest {
 
 ####Authenticator
 
-The `Authenticator` authorizes access to a key.  We'll defer tying ourselves to an authentication platform
+The `Authenticator` authorizes access to a key.  We'll defer tying ourselves to
+an authentication platform
 until later, and implement this as an interface for now.
 
 ```
@@ -667,10 +673,11 @@ public class AuthenticatorTest {
 
 ##Resource
 
-A resource is an interface to an external system.  This could be S3, or an email
-server.  A resource has a name to identify it, and operates on a key-value pair.
-`Resource` is also implemented as an abstract class, using an anonymous inner
-class for test:
+A `Resource` is an interface to an external system.  This could be anything
+from S3 to an email
+server.  A `Resource` has a name to identify it, and operates on a key-value
+pair.  `Resource` is also implemented as an abstract class, using an anonymous
+inner class for test:
 
 ```
 package info.bigdatahowto.core;
@@ -798,7 +805,7 @@ public class ResourceTest {
 
 As often happens, a new class was discovered
 while building.  These have been referred to as artifacts of implementation in
-the literature.  I like to call then 'Roadies' :)  This one captures the
+the literature.  I like to call them "Roadies" :)  This one captures the
 available resources on the system, associates the correct resource for a
 message, and authorizes access to messages within the resource.
 
@@ -880,9 +887,9 @@ public class ResourceRoadieTest {
 
 ##Processor
 
-Processor seems to have taken on a Controller role, coordinating between
-the queue and resource implementations, handling retry and error conditions,
-and parsing out processing results.
+`Processor` seems to have taken on a Controller role, coordinating between
+`Queue` and `Resource` implementations, handling retry and error conditions,
+and parsing out `ProcessingResult` instances.
 
 ```
 package info.bigdatahowto.core;
@@ -1123,7 +1130,7 @@ public class ProcessorTest {
 Processing can result in a number of outcomes.  A message may stop any
 additional processing, it may modify the metadata for the message being
 processed, and it may create new messages for further processing.
-ProcessingResult captures this information.
+`ProcessingResult` captures this information.
 
 ```
 package info.bigdatahowto.core;
