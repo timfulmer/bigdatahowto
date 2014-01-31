@@ -156,7 +156,7 @@ cases written with Junit & Mockito, and a description of any gotchas found along
 the
 way.
 
-##Message
+###Message
 
 The first interaction on our diagram is creating a `Message` instance.  Let's
 setup an empty test case:
@@ -184,8 +184,8 @@ Here are our reqs so far for a `Message` instance:
 
 > Message object: {key[,value][,persist][,delete][,get][,error][,options]}
 
-We'll notice `persist`, `delete`, `get` and `error` all refer to behavior
-associated with actions on the system.  And `options` is a bag of key-value
+Notice how `persist`, `delete`, `get` and `error` all refer to behavior
+associated with actions on the system?  And `options` is a bag of key-value
 pairs.  Let's make both of these items maps of strings to give us some
 extensibility, and add some simple asserts to keep coverage up:
 
@@ -257,7 +257,7 @@ public class MessageTest {
 ```
 
 We've also added a `resourceKey` interface.  This returns a key to use when
-storing messages to a resource.  More on resource persistence below.
+storing messages to a `Resource`.  More on `Resource` persistence below.
 
 Let's run our gradle build and see if everything still works:
 
@@ -267,11 +267,11 @@ $ gradle build
 BUILD SUCCESSFUL
 ```
 
-Looking good!  You'll notice we've made the message key it's own top-level
+Looking good!  You'll notice we've made the message's key it's own top-level
 object.
 Let's take a look at this one next.
 
-##MessageKey
+###MessageKey
 
 `MessageKey` uses a convention to identify various pieces of information used to
 access messages within resources, with a path syntax:
@@ -311,7 +311,7 @@ public class MessageKeyTest {
 
 On to the next object.
 
-##Job
+###Job
 
 Let's drill down on requirements for `Job` a little bit more.  We want a `UUID`
 to
@@ -534,7 +534,7 @@ the test coverage seems warranted :)
 
 Gradle build, check, moving on.
 
-##Queue
+###Queue
 
 We'll want to push messages into the queue, pop messages out of the queue, and
 delete messages.  We also want `Queue` to be extensible, so we can implement
@@ -643,7 +643,7 @@ public class QueueTest {
 }
 ```
 
-####Authenticator
+###Authenticator
 
 The `Authenticator` authorizes access to a key.  We'll defer tying ourselves to
 an authentication platform
@@ -671,7 +671,7 @@ public class AuthenticatorTest {
 }
 ```
 
-##Resource
+###Resource
 
 A `Resource` is an interface to an external system.  This could be anything
 from S3 to an email
@@ -801,7 +801,7 @@ public class ResourceTest {
 }
 ```
 
-##ResourceRoadie
+###ResourceRoadie
 
 As often happens, a new class was discovered
 while building.  These have been referred to as artifacts of implementation in
@@ -885,7 +885,7 @@ public class ResourceRoadieTest {
 }
 ```
 
-##Processor
+###Processor
 
 `Processor` seems to have taken on a Controller role, coordinating between
 `Queue` and `Resource` implementations, handling retry and error conditions,
@@ -1125,7 +1125,7 @@ public class ProcessorTest {
 }
 ```
 
-##ProcessingResult
+###ProcessingResult
 
 Processing can result in a number of outcomes.  A message may stop any
 additional processing, it may modify the metadata for the message being
@@ -1178,3 +1178,9 @@ public class ProcessingResultTest {
 ```
 
 Gradle build, check; first iteration, done!
+
+##GitHub
+
+Latest code for the project can be found in GitHub here:
+
+  [https://github.com/timfulmer/bigdatahowto](https://github.com/timfulmer/bigdatahowto)
