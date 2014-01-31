@@ -1,3 +1,3 @@
 dependencies {
-    compile project(':bd-default')
+    compile project(':bd-defaults')
 }
