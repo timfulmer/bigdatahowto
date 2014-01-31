@@ -141,6 +141,9 @@
                 this.get('#/design', function(context) {
                     renderMarkdown('USECASE.md');
                 });
+                this.get('#/core', function(context) {
+                    renderMarkdown('CORE.md');
+                });
                 this.get('', function(context) {
                     renderMarkdown('README.md');
                 });
@@ -165,7 +168,8 @@
                                         "<li><a href='#'>&laquo;</a></li>"+
                                         "<li><a href='#'>1</a></li>"+
                                         "<li><a href='#/design'>2</a></li>"+
-                                        "<li><a href='#/design'>&raquo;</a></li>"+
+                                        "<li><a href='#/core'>3</a></li>"+
+                                        "<li><a href='#/core'>&raquo;</a></li>"+
                                         "</ul></div>");
                             }
                             divId= element.firstChild.nodeValue.replace(

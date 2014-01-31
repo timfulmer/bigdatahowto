@@ -75,12 +75,12 @@ Submit a word to the system for counting:
         for(var i=0; i<word.length-1;i++){
             stems.push({key:word.substring(0,i),
                     // Keep track of where data comes from.
-                    meta:{'type':'processed'},
+                    meta:{type:'processed'},
                     persist:env.persistFunction});
         }
         stems.push({key:word,
                 // Can't go back and infer type later.
-                meta:{'type':'raw'},
+                meta:{type:'raw'},
                 persist:env.persistFunction});
         return stems;
     }"
@@ -137,8 +137,13 @@ Options:
 
 ####Defaults
 
-TODO: Fill in defaults designs as they are discovered.
+Initial pass at implementing defaults includes an in memory queue
+implementation, a JavaScript processor and an S3 resource implementation.
 
 ####API
 
-TODO: Fill in API details as they are discovered.
+BD API with three methods:
+
+ - Add message;
+ - Query job;
+ - Query metadata;
