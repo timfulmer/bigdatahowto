@@ -62,25 +62,27 @@ Submit a word to the system for counting:
 
 ```
     POST /public/<word> "function(env,word,meta){
+        // Input validation.
+        if(!word || word.length>7) return false;
         // Define stem behavior.
         env.persistFunction= function(env,word,meta){
-            // Keep track of where data comes from.
-            meta.type='processed';
-            // Update count returned from GET request.
+            // Update count returned from the GET request.
             if(!meta.count) meta.count= 0;
             meta.count= meta.count+ 1;
         }
-        // Input validation.
-        if(!word || word.length>7) return false;
-        // Can't go back and infer later.
-        meta.type='raw';
-        // Decompose into stems, and persist each one.
-        var split= [];
-        for(var i=0; i<word.length;i++){
-            split.push({key:word.substring(0,i),
+        // Decompose into stems, run persistFunction on each one.
+        var stems= [];
+        for(var i=0; i<word.length-1;i++){
+            stems.push({key:word.substring(0,i),
+                    // Keep track of where data comes from.
+                    meta:{'type':'processed'},
                     persist:env.persistFunction});
         }
-        return split;
+        stems.push({key:word,
+                // Can't go back and infer type later.
+                meta:{'type':'raw'},
+                persist:env.persistFunction});
+        return stems;
     }"
 ```
 
