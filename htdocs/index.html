@@ -144,6 +144,9 @@
                 this.get('#/core', function(context) {
                     renderMarkdown('CORE.md');
                 });
+                this.get('#/defaults', function(context) {
+                    renderMarkdown('DEFAULTS.md');
+                });
                 this.get('', function(context) {
                     renderMarkdown('README.md');
                 });
@@ -169,7 +172,8 @@
                                         "<li><a href='#'>1</a></li>"+
                                         "<li><a href='#/design'>2</a></li>"+
                                         "<li><a href='#/core'>3</a></li>"+
-                                        "<li><a href='#/core'>&raquo;</a></li>"+
+                                        "<li><a href='#/defaults'>4</a></li>"+
+                                        "<li><a href='#/defaults'>&raquo;</a></li>"+
                                         "</ul></div>");
                             }
                             divId= element.firstChild.nodeValue.replace(

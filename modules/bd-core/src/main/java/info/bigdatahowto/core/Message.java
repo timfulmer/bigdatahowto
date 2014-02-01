@@ -21,7 +21,7 @@ public class Message extends AggregateRoot {
     /**
      * Value, containing JSON data.
      */
-    private String value;
+    private Map values= new HashMap();
 
     /**
      * Map of JavaScript behavior functions.
@@ -40,17 +40,17 @@ public class Message extends AggregateRoot {
 
     public Message( String key){
 
-        this( key, null, new HashMap<String,String>(0),
-                new HashMap<String,String>(0));
+        this(key, null, new HashMap<String, String>(0),
+                new HashMap<String, String>(0));
     }
 
-    public Message( String key, String value, Map<String, String> behavior,
+    public Message( String key, Map values, Map<String, String> behavior,
             Map<String, String> options) {
 
         this();
 
         this.setMessageKey( new MessageKey( key));
-        this.setValue( value);
+        this.setValues( values);
         this.setBehavior( behavior);
         this.setOptions(options);
     }
@@ -63,12 +63,23 @@ public class Message extends AggregateRoot {
         this.messageKey = messageKey;
     }
 
-    public String getValue() {
-        return value;
+    // TODO: Test me & figure out serialization.
+    public String getKey(){
+
+        return this.messageKey.getKey();
     }
 
-    public void setValue(String value) {
-        this.value = value;
+    public void setKey( String key){
+
+        this.setMessageKey( new MessageKey( key));
+    }
+
+    public Map getValues() {
+        return values;
+    }
+
+    public void setValues(Map values) {
+        this.values = values;
     }
 
     public Map<String, String> getBehavior() {
@@ -101,7 +112,7 @@ public class Message extends AggregateRoot {
     public String toString() {
         return "Message{" +
                 "messageKey=" + messageKey +
-                ", value='" + value + '\'' +
+                ", values=" + values +
                 ", behavior=" + behavior +
                 ", options=" + options +
                 "} " + super.toString();
@@ -120,7 +131,7 @@ public class Message extends AggregateRoot {
             return false;
         if (options != null ? !options.equals(message.options) : message.options != null)
             return false;
-        if (value != null ? !value.equals(message.value) : message.value != null)
+        if (values != null ? !values.equals(message.values) : message.values != null)
             return false;
 
         return true;
@@ -129,7 +140,7 @@ public class Message extends AggregateRoot {
     @Override
     public int hashCode() {
         int result = messageKey != null ? messageKey.hashCode() : 0;
-        result = 31 * result + (value != null ? value.hashCode() : 0);
+        result = 31 * result + (values != null ? values.hashCode() : 0);
         result = 31 * result + (behavior != null ? behavior.hashCode() : 0);
         result = 31 * result + (options != null ? options.hashCode() : 0);
         return result;

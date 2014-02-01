@@ -16,24 +16,24 @@ public class MessageTest {
     @Test
     public void testMessage(){
 
-        String value= "test-value";
+        Map<String,String> values= new HashMap<>();
         Map<String,String> behavior= new HashMap<>();
         Map<String,String> options= new HashMap<>();
         Message message= new Message(
-                TestUtils.MESSAGE_KEY, "test-value", behavior, options);
+                TestUtils.MESSAGE_KEY, values, behavior, options);
 
-        this.assertMessage(new MessageKey( TestUtils.MESSAGE_KEY), value,
+        this.assertMessage(new MessageKey( TestUtils.MESSAGE_KEY), values,
                 behavior, options, message);
 
         // tf - Test mutation while we're here.
         MessageKey messageKey= new MessageKey();
         message.setMessageKey(messageKey);
-        message.setValue(value);
+        message.setValues(values);
         behavior.put( "test-key", "test-value");
         message.setBehavior( behavior);
         message.setOptions( options);
 
-        this.assertMessage(messageKey, value, behavior, options, message);
+        this.assertMessage(messageKey, values, behavior, options, message);
     }
 
     @Test
@@ -45,13 +45,13 @@ public class MessageTest {
     }
 
     private void assertMessage(
-            MessageKey messageKey,String value, Map<String, String> behavior,
+            MessageKey messageKey, Map<String, String> values, Map<String, String> behavior,
             Map<String, String> options, Message message) {
 
         assert message.getMessageKey()!= null && messageKey.equals(
                 message.getMessageKey()):
                 "Message.key is not set correctly.";
-        assert value.equals( message.getValue()):
+        assert values.equals( message.getValues()):
                 "Message.value is not set correctly.";
         assert behavior== message.getBehavior() && behavior.equals(
                 message.getBehavior()):

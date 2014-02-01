@@ -2,8 +2,8 @@ package info.bigdatahowto.defaults;
 
 import info.bigdatahowto.core.Queue;
 
-import java.util.LinkedList;
 import java.util.UUID;
+import java.util.concurrent.ConcurrentLinkedQueue;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 
@@ -23,7 +23,7 @@ public class InMemoryQueue extends Queue {
 
         super();
 
-        this.queue= new LinkedList<>();
+        this.queue= new ConcurrentLinkedQueue<>();
     }
 
     /**

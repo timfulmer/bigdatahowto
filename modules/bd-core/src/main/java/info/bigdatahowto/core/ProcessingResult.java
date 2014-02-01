@@ -1,7 +1,9 @@
 package info.bigdatahowto.core;
 
 import java.util.ArrayList;
+import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
 
 /**
  * Captures the results of processing or error handling of a message.
@@ -28,6 +30,14 @@ public class ProcessingResult {
     public ProcessingResult() {
 
         super();
+    }
+
+    public void addMessage( String key, Map values, String behavior){
+
+        Map<String,String> behaviorMap= new HashMap<>( 1);
+        behaviorMap.put( "persist", behavior);
+        this.messages.add( new Message( key, values, behaviorMap,
+                new HashMap<String,String>(0)));
     }
 
     public Message getMessage() {
