@@ -16,10 +16,12 @@ import java.util.logging.Logger;
  */
 public class FileResource extends Resource {
 
+    public static final String DEFAULT_DIRECTORY= "modules/build/file-resource";
+
     private transient Logger logger= Logger.getLogger(
             this.getClass().getName());
 
-    private String directoryName= "file-resource";
+    private String directoryName= DEFAULT_DIRECTORY;
     private File directory;
 
     public FileResource() {

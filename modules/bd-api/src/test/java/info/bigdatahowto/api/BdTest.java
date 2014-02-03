@@ -2,9 +2,13 @@ package info.bigdatahowto.api;
 
 import info.bigdatahowto.core.Job;
 import info.bigdatahowto.core.JobState;
+import info.bigdatahowto.defaults.FileResource;
+import org.apache.commons.io.FileUtils;
 import org.junit.Before;
 import org.junit.Test;
 
+import java.io.File;
+import java.io.IOException;
 import java.util.HashMap;
 import java.util.UUID;
 
@@ -38,9 +42,14 @@ public class BdTest {
     private Bd bd;
 
     @Before
-    public void before(){
+    public void before() throws IOException {
 
         this.bd= new Bd();
+        File directory= new File(FileResource.DEFAULT_DIRECTORY);
+        if( directory.exists()){
+
+            FileUtils.cleanDirectory( directory);
+        }
     }
 
     @Test
