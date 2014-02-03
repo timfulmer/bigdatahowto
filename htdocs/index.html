@@ -138,6 +138,9 @@
     <script>
         $(document).ready(function(){
             Sammy(function() {
+                this.get('#/api', function(context) {
+                    renderMarkdown('API.md');
+                });
                 this.get('#/design', function(context) {
                     renderMarkdown('USECASE.md');
                 });
@@ -173,7 +176,8 @@
                                         "<li><a href='#/design'>2</a></li>"+
                                         "<li><a href='#/core'>3</a></li>"+
                                         "<li><a href='#/defaults'>4</a></li>"+
-                                        "<li><a href='#/defaults'>&raquo;</a></li>"+
+                                        "<li><a href='#/api'>5</a></li>"+
+                                        "<li><a href='#/api'>&raquo;</a></li>"+
                                         "</ul></div>");
                             }
                             divId= element.firstChild.nodeValue.replace(
