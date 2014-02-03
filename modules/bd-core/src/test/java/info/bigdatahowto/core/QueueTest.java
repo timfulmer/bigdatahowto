@@ -26,7 +26,7 @@ public class QueueTest {
 
         this.resourceMock= mock( Resource.class);
 
-        this.queue= new Queue() {
+        this.queue= new Queue(this.resourceMock) {
             @Override
             protected void write(UUID uuid) {
                 jobs.add(uuid);
@@ -42,7 +42,6 @@ public class QueueTest {
                 jobs.remove( uuid);
             }
         };
-        this.queue.setResource(this.resourceMock);
     }
 
     @Test
@@ -78,6 +77,20 @@ public class QueueTest {
         Job job= fakeJob();
         job.setState( JobState.Processing);
         this.queue.error(job, "test-message");
+    }
+
+    @Test
+    public void testComplete(){
+
+        Job job= fakeJob();
+        job.setState( JobState.Processing);
+        this.queue.complete( job);
+        assert JobState.Complete.equals(job.getState()):
+                "Queue.complete is not implemented correctly.";
+        assert !this.jobs.contains( job.getUuid()):
+                "Queue.complete is not implemented correctly.";
+
+        verify( this.resourceMock).put( job);
     }
 
     private final UUID popUuid(){

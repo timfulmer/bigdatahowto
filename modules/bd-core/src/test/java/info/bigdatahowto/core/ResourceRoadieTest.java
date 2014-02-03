@@ -3,9 +3,6 @@ package info.bigdatahowto.core;
 import org.junit.Before;
 import org.junit.Test;
 
-import java.util.HashMap;
-import java.util.Map;
-
 import static info.bigdatahowto.core.TestUtils.fakeMessage;
 import static org.mockito.Mockito.*;
 
@@ -24,11 +21,10 @@ public class ResourceRoadieTest {
         this.authenticatorMock= mock( Authenticator.class);
         this.resourceMock= mock( Resource.class);
 
-        this.resourceRoadie= new ResourceRoadie();
-        this.resourceRoadie.setAuthenticator( this.authenticatorMock);
-        Map<String,Resource> resources= new HashMap<>(1);
-        resources.put( TestUtils.MESSAGE_RESOURCE_KEY, this.resourceMock);
-        this.resourceRoadie.setResources( resources);
+        this.resourceRoadie= new ResourceRoadie( this.authenticatorMock);
+        when(this.resourceMock.getName()).thenReturn(
+                TestUtils.MESSAGE_RESOURCE_KEY);
+        this.resourceRoadie.addResource( this.resourceMock);
     }
 
     @Test
@@ -38,7 +34,7 @@ public class ResourceRoadieTest {
         when(this.authenticatorMock.authorize( TestUtils.MESSAGE_KEY,
                 authentication)).thenReturn( true);
         Message message= fakeMessage();
-        when(this.resourceMock.get(TestUtils.MESSAGE_KEY, Message.class)
+        when(this.resourceMock.get(TestUtils.MESSAGE_USER_KEY, Message.class)
                 ).thenReturn( message);
 
         Message result= this.resourceRoadie.accessMessage(

@@ -40,7 +40,7 @@ public class MessageTest {
     public void testResourceKey(){
 
         Message message= fakeMessage();
-        assert TestUtils.MESSAGE_RESOURCE_KEY.equals( message.resourceKey()):
+        assert TestUtils.MESSAGE_USER_KEY.equals( message.resourceKey()):
                 "Message.resourceKey is implemented incorrectly.";
     }
 

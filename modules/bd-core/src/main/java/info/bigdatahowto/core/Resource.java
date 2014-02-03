@@ -21,11 +21,12 @@ public abstract class Resource {
     private String name;
     private ObjectMapper objectMapper;
 
-    protected Resource() {
+    protected Resource( String name) {
 
         super();
 
         this.objectMapper= new ObjectMapper();
+        this.name= name;
     }
 
     /**
@@ -35,10 +36,6 @@ public abstract class Resource {
      */
     public String getName() {
         return name;
-    }
-
-    public void setName(String name) {
-        this.name = name;
     }
 
     /**
@@ -88,6 +85,10 @@ public abstract class Resource {
     public <T extends AggregateRoot> T get( String resourceKey, Class<T> clazz){
 
         String json= this.read( resourceKey);
+        if( json== null){
+
+            return null;
+        }
         try {
 
             return this.objectMapper.readValue( json, clazz);

@@ -24,7 +24,7 @@ public class FileResource extends Resource {
 
     public FileResource() {
 
-        super();
+        super( "file");
     }
 
     /**
@@ -62,6 +62,10 @@ public class FileResource extends Resource {
     public String read(String key) {
 
         File file= this.getFile( key);
+        if( !file.exists()){
+
+            return null;
+        }
         try {
 
             return FileUtils.readFileToString(file,

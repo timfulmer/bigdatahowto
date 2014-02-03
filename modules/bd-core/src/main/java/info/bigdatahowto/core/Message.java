@@ -105,7 +105,7 @@ public class Message extends AggregateRoot {
 
     @Override
     public String resourceKey() {
-        return this.getMessageKey().getResourceName();
+        return this.getMessageKey().getAggregateRootKey();
     }
 
     @Override

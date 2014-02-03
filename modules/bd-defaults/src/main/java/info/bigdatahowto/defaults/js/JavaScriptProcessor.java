@@ -1,8 +1,6 @@
 package info.bigdatahowto.defaults.js;
 
-import info.bigdatahowto.core.Message;
-import info.bigdatahowto.core.ProcessingResult;
-import info.bigdatahowto.core.Processor;
+import info.bigdatahowto.core.*;
 
 import javax.script.*;
 import java.io.StringWriter;
@@ -25,7 +23,9 @@ public class JavaScriptProcessor extends Processor {
 
     private JavaScriptProcessorTemplate javaScriptProcessorTemplate;
 
-    public JavaScriptProcessor() {
+    public JavaScriptProcessor(Queue queue, ResourceRoadie resourceRoadie) {
+
+        super(queue, resourceRoadie);
 
         this.javaScriptProcessorTemplate=
                 new DefaultJavaScriptProcessorTemplate();
@@ -99,7 +99,7 @@ public class JavaScriptProcessor extends Processor {
 
         ScriptEngineManager factory = new ScriptEngineManager();
         ScriptEngine engine = factory.getEngineByName("JavaScript");
-        bindings.put( "key", message.getMessageKey().getKey());
+        bindings.put( "key", message.getMessageKey().getUserKey());
         ProcessingResult processingResult= new ProcessingResult();
         bindings.put( "processingResult", processingResult);
         StringWriter errorWriter= new StringWriter();

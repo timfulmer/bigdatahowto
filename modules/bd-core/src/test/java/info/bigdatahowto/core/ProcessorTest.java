@@ -28,7 +28,7 @@ public class ProcessorTest {
         this.queueMock= mock( Queue.class);
         this.resourceRoadieMock= mock( ResourceRoadie.class);
 
-        this.processor= new Processor() {
+        this.processor= new Processor(this.queueMock, this.resourceRoadieMock) {
             @Override
             protected ProcessingResult process(Message message) {
                 return processingResult;
@@ -39,8 +39,6 @@ public class ProcessorTest {
                 return processingResult;
             }
         };
-        this.processor.setQueue( this.queueMock);
-        this.processor.setResourceRoadie( this.resourceRoadieMock);
     }
 
     @Test
@@ -108,6 +106,7 @@ public class ProcessorTest {
 
         Message message= fakeMessage();
         message.getBehavior().put("test-key", "test-value");
+        message.getBehavior().put( "error", "test-error");
         when(this.resourceRoadieMock.accessMessage(job.getMessageKey(),
                 job.getAuthentication())).thenReturn(message);
         when(this.processingResult.isContinueProcessing()).thenReturn( true);
@@ -116,7 +115,7 @@ public class ProcessorTest {
         messages.add(message);
         when(this.processingResult.getMessages()).thenReturn(messages);
 
-        this.processor= new Processor() {
+        this.processor= new Processor(this.queueMock, this.resourceRoadieMock) {
             @Override
             protected ProcessingResult process(Message message) {
                 throw new RuntimeException();
@@ -131,10 +130,41 @@ public class ProcessorTest {
         this.processor.setResourceRoadie( this.resourceRoadieMock);
         this.processor.pullJob();
 
-        verify(this.resourceRoadieMock).storeMessage(message);
         verify(this.resourceRoadieMock).storeMessage(message,
                 job.getAuthentication());
         verify(this.queueMock).push(message, job.getAuthentication());
+    }
+
+    @Test
+    public void testProcessor_UndefinedError(){
+
+        Job job= fakeJob();
+        when(this.queueMock.pop()).thenReturn( job);
+
+        Message message= fakeMessage();
+        message.getBehavior().put("test-key", "test-value");
+        when(this.resourceRoadieMock.accessMessage(job.getMessageKey(),
+                job.getAuthentication())).thenReturn(message);
+        when(this.processingResult.isContinueProcessing()).thenReturn( true);
+        when(this.processingResult.getMessage()).thenReturn(message);
+        List<Message> messages= new ArrayList<>(1);
+        messages.add(message);
+        when(this.processingResult.getMessages()).thenReturn(messages);
+
+        this.processor= new Processor(this.queueMock, this.resourceRoadieMock) {
+            @Override
+            protected ProcessingResult process(Message message) {
+                throw new RuntimeException();
+            }
+
+            @Override
+            protected ProcessingResult error(Message message, int tries) {
+                return processingResult;
+            }
+        };
+        this.processor.setQueue( this.queueMock);
+        this.processor.setResourceRoadie( this.resourceRoadieMock);
+        this.processor.pullJob();
     }
 
     @Test( expected = RuntimeException.class)
@@ -153,7 +183,7 @@ public class ProcessorTest {
         messages.add(message);
         when(this.processingResult.getMessages()).thenReturn(messages);
 
-        this.processor= new Processor() {
+        this.processor= new Processor(this.queueMock, this.resourceRoadieMock) {
             @Override
             protected ProcessingResult process(Message message) {
                 throw new RuntimeException();
@@ -182,7 +212,7 @@ public class ProcessorTest {
         when(this.resourceRoadieMock.accessMessage(job.getMessageKey(),
                 job.getAuthentication())).thenReturn(message);
 
-        this.processor= new Processor() {
+        this.processor= new Processor(this.queueMock, this.resourceRoadieMock) {
             @Override
             protected ProcessingResult process(Message message) {
                 return null;

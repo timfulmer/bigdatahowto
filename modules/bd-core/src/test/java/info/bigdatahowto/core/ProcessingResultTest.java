@@ -2,7 +2,7 @@ package info.bigdatahowto.core;
 
 import org.junit.Test;
 
-import java.util.ArrayList;
+import java.util.HashMap;
 import java.util.List;
 
 import static info.bigdatahowto.core.TestUtils.fakeMessage;
@@ -26,17 +26,30 @@ public class ProcessingResultTest {
                         "correctly.";
 
         Message message= fakeMessage();
-        processingResult.setMessage( message);
-        List<Message> messages= new ArrayList<>( 1);
-        messages.add( message);
-        processingResult.setMessages( messages);
+        processingResult.setMessage(message);
         processingResult.setContinueProcessing( false);
         assert message.equals( processingResult.getMessage()):
-                "ProcessingResult.message is not initialized correctly.";
-        assert messages.equals( processingResult.getMessages()):
-                "ProcessingResult.messages is not initialized correctly.";
+                "ProcessingResult.message is not set correctly.";
         assert !processingResult.isContinueProcessing():
-                "ProcessingResult.continueProcessing is not initialized " +
-                        "correctly.";
+                "ProcessingResult.continueProcessing is not set correctly.";
+    }
+
+    @Test
+    public void testProcessingResult_AddMessage(){
+
+        ProcessingResult processingResult= new ProcessingResult();
+        Message message= fakeMessage();
+        processingResult.setMessage( message);
+        processingResult.addMessage( "test-key01");
+        processingResult.addMessage( "test-key02", "test-behavior");
+        processingResult.addMessage( "test-key03", new HashMap());
+        processingResult.addMessage( "test-key04", new HashMap(),
+                "test-behavior");
+
+        List<Message> messages= processingResult.getMessages();
+        assert messages!= null:
+                "ProcessingResult.messages is not implemented correctly.";
+        assert messages.size()== 4:
+                "ProcessingResult.messages is not implemented correctly.";
     }
 }

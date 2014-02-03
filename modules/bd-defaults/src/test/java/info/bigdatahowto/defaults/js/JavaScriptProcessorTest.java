@@ -18,7 +18,7 @@ public class JavaScriptProcessorTest {
         message.getValues().put( "testing","testing");
         message.getBehavior().put( "persist",
                 "function(env,key,meta){meta.processing=true; return true;}");
-        JavaScriptProcessor javaScriptProcessor= new JavaScriptProcessor();
+        JavaScriptProcessor javaScriptProcessor= new JavaScriptProcessor(null, null);
         ProcessingResult processingResult= javaScriptProcessor.process(message);
         assert processingResult!= null:
                 "JavaScriptProcessor.process did not return a processingResult.";
@@ -57,7 +57,7 @@ public class JavaScriptProcessorTest {
                         "  newMessages.push(newMessage);\n" +
                         "}\n" +
                         "return newMessages;}");
-        JavaScriptProcessor javaScriptProcessor= new JavaScriptProcessor();
+        JavaScriptProcessor javaScriptProcessor= new JavaScriptProcessor(null, null);
         ProcessingResult processingResult= javaScriptProcessor.process(message);
         assert processingResult!= null:
                 "JavaScriptProcessor.process did not return a processingResult.";
@@ -81,7 +81,7 @@ public class JavaScriptProcessorTest {
         message.getValues().put( "testing","testing");
         message.getBehavior().put( "error",
                 "function(env,key,meta){meta.processing=true; return true;}");
-        JavaScriptProcessor javaScriptProcessor= new JavaScriptProcessor();
+        JavaScriptProcessor javaScriptProcessor= new JavaScriptProcessor(null, null);
         ProcessingResult processingResult= javaScriptProcessor.error(message, 5);
         assert processingResult!= null:
                 "JavaScriptProcessor.process did not return a processingResult.";
@@ -104,7 +104,7 @@ public class JavaScriptProcessorTest {
         message.getValues().put( "testing","testing");
         message.getBehavior().put( "persist",
                 "function(env,key,meta){meta.testing='modified';meta.processing=true; return true;}");
-        JavaScriptProcessor javaScriptProcessor= new JavaScriptProcessor();
+        JavaScriptProcessor javaScriptProcessor= new JavaScriptProcessor(null, null);
         ProcessingResult processingResult= javaScriptProcessor.process(message);
         assert processingResult!= null:
                 "JavaScriptProcessor.process did not return a processingResult.";

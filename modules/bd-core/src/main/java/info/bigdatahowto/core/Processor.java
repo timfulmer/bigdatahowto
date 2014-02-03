@@ -19,6 +19,14 @@ public abstract class Processor {
     private ResourceRoadie resourceRoadie;
     private Integer maximumTries= 5;
 
+    protected Processor(Queue queue, ResourceRoadie resourceRoadie) {
+
+        super();
+
+        this.queue = queue;
+        this.resourceRoadie = resourceRoadie;
+    }
+
     /**
      * Pops a job off the queue, accesses the current state of the job's
      * message, processes message, handles errors and updates job and message
@@ -51,7 +59,7 @@ public abstract class Processor {
 
             return;
         }
-        ProcessingResult processingResult;
+        ProcessingResult processingResult= null;
         try{
 
             processingResult= this.process( message);
@@ -59,7 +67,16 @@ public abstract class Processor {
 
             if( job.getTries()< this.maximumTries){
 
-                processingResult= this.error( message, job.getTries());
+                String msg= String.format(
+                        "Caught exception processing message " +
+                        "'%s' for job '%s'.", message.toString(),
+                        job.toString());
+                this.logger.log( Level.WARNING, msg, t);
+
+                if( message.getBehavior().containsKey( "error")){
+
+                    processingResult= this.error( message, job.getTries());
+                }
             }else{
 
                 this.queue.error( job);
@@ -81,6 +98,8 @@ public abstract class Processor {
         }
         if( processingResult.getMessage()!= null){
 
+            // tf - Do not need an authentication here since we're updating a
+            //  message already authenticated above.
             this.resourceRoadie.storeMessage( processingResult.getMessage());
         }
         if( !isEmpty( processingResult.getMessages())){
@@ -92,6 +111,8 @@ public abstract class Processor {
                 this.queue.push( newMessage, job.getAuthentication());
             }
         }
+
+        this.queue.complete(job);
     }
 
     /**

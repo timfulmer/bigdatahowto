@@ -13,6 +13,8 @@ import static info.bigdatahowto.core.TestUtils.fakeMessage;
  * @author timfulmer
  */
 public class ResourceTest {
+    
+    private static final String RESOURCE_NAME= "test-resource";
 
     private final Map<String,String> hackery= new HashMap<>(1);
     private Resource resource;
@@ -21,7 +23,7 @@ public class ResourceTest {
     public void before(){
 
         this.hackery.clear();
-        this.resource= new Resource() {
+        this.resource= new Resource(RESOURCE_NAME) {
             @Override
             public void write(String key, String value) {
                 hackery.put(key,value);
@@ -37,10 +39,8 @@ public class ResourceTest {
     @Test
     public void testResource(){
 
-        String name= "test-name";
-        this.resource.setName(name);
-        assert name.equals( resource.getName()):
-                "Resource.name is not set correctly.";
+        assert RESOURCE_NAME.equals( resource.getName()):
+                "Resource.name is not initialized correctly.";
 
         // Could be s3, elasticache, firebase, etc.
         this.resource.write(UUID.randomUUID().toString(),
@@ -85,7 +85,7 @@ public class ResourceTest {
                 return testKey;
             }
         };
-        this.resource= new Resource() {
+        this.resource= new Resource(RESOURCE_NAME) {
             @Override
             public void write(String key, String value) {
                 throw new RuntimeException();
@@ -97,7 +97,7 @@ public class ResourceTest {
     @Test( expected = UnsupportedOperationException.class)
     public void testRead(){
 
-        this.resource= new Resource() {
+        this.resource= new Resource(RESOURCE_NAME) {
             @Override
             public void write(String key, String value) {
                 // Noop.

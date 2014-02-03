@@ -69,19 +69,17 @@ Submit a word to the system for counting:
             // Update count returned from the GET request.
             if(!meta.count) meta.count= 0;
             meta.count= meta.count+ 1;
+            return true;
         }
+        // Set meta data for this word.
+        if(!meta.count) meta.count= 0;
+        meta.count= meta.count+ 1;
         // Decompose into stems, run persistFunction on each one.
         var stems= [];
-        for(var i=0; i<word.length-1;i++){
+        for(var i=1; i<word.length;i++){
             stems.push({key:word.substring(0,i),
-                    // Keep track of where data comes from.
-                    meta:{type:'processed'},
                     persist:env.persistFunction});
         }
-        stems.push({key:word,
-                // Can't go back and infer type later.
-                meta:{type:'raw'},
-                persist:env.persistFunction});
         return stems;
     }"
 ```
@@ -138,16 +136,19 @@ Options:
 ####Defaults
 
 We'll be building the system above in iterations.  Initial development is scoped
-to implementing an in memory queue, a JavaScript processor, an S3 resource
-and an always allow Authenticator.  SQS, ElastiCache, SpringSecurity and
+to implementing an in memory queue, a JavaScript processor, an local file system
+resource
+and an always allow Authenticator.  SQS, S3, ElastiCache, SpringSecurity and
 potentially other technologies can be
 added once we've built up a test environment and can measure their impact on
 the system.
 
 ####API
 
-BD API with three methods:
+BD API with the following methods:
 
  - Add message;
  - Query job;
  - Query metadata;
+ - Process job;
+ - Delete message.

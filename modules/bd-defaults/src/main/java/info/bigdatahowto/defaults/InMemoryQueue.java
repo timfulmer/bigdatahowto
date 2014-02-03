@@ -1,6 +1,7 @@
 package info.bigdatahowto.defaults;
 
 import info.bigdatahowto.core.Queue;
+import info.bigdatahowto.core.Resource;
 
 import java.util.UUID;
 import java.util.concurrent.ConcurrentLinkedQueue;
@@ -8,7 +9,8 @@ import java.util.logging.Level;
 import java.util.logging.Logger;
 
 /**
- * A simple in-memory queue, backed by a LinkedList, for testing only.
+ * A simple in-memory queue, backed by a ConcurrentLinkedQueue, for testing
+ * only.
  *
  * @author timfulmer
  */
@@ -17,13 +19,14 @@ public class InMemoryQueue extends Queue {
     private transient Logger logger= Logger.getLogger(
             this.getClass().getName());
 
-    private java.util.Queue<UUID> queue;
+    private java.util.Queue<UUID> head, tail;
 
-    public InMemoryQueue() {
+    public InMemoryQueue( Resource resource) {
 
-        super();
+        super( resource);
 
-        this.queue= new ConcurrentLinkedQueue<>();
+        this.head= new ConcurrentLinkedQueue<>();
+        this.tail= new ConcurrentLinkedQueue<>();
     }
 
     /**
@@ -34,15 +37,7 @@ public class InMemoryQueue extends Queue {
     @Override
     protected void write(UUID uuid) {
 
-        if( !this.queue.offer(uuid)){
-
-            String msg= String.format( "Could not put UUID '%s' into queue " +
-                    "of type '%s'.", uuid.toString(),
-                    this.queue.getClass().getName());
-            this.logger.log(Level.SEVERE, msg);
-
-            throw new RuntimeException( msg);
-        }
+        this.head.add( uuid);
     }
 
     /**
@@ -55,7 +50,17 @@ public class InMemoryQueue extends Queue {
     @Override
     protected UUID read() {
 
-        return this.queue.peek();
+        if( this.head.isEmpty() && !this.tail.isEmpty()){
+
+            this.swap();
+        }
+        UUID current= this.head.poll();
+        if( current!= null){
+
+            this.tail.add( current);
+        }
+
+        return current;
     }
 
     /**
@@ -66,14 +71,21 @@ public class InMemoryQueue extends Queue {
     @Override
     protected void delete(UUID uuid) {
 
-        if( !this.queue.remove( uuid)){
+        if( !this.head.remove( uuid) && !this.tail.remove( uuid)){
 
             String msg= String.format( "Could not remove UUID '%s' from " +
-                    "queue of type '%s'.", uuid.toString(),
-                    this.queue.getClass().getName());
+                    "head of type '%s' or tail of type '%s'.", uuid.toString(),
+                    this.head.getClass().getName(),
+                    this.tail.getClass().getName());
             this.logger.log(Level.SEVERE, msg);
 
             throw new RuntimeException( msg);
         }
+    }
+
+    private void swap(){
+
+        this.head= this.tail;
+        this.tail= new ConcurrentLinkedQueue<>();
     }
 }

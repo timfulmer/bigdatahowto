@@ -14,6 +14,13 @@ public abstract class Queue {
      */
     protected Resource resource;
 
+    protected Queue(Resource resource) {
+
+        super();
+
+        this.resource = resource;
+    }
+
     /**
      * Creates a new job instance for a message; updates job status; stores the
      * job to the external resource; writes the job to the underlying queue;
@@ -22,7 +29,7 @@ public abstract class Queue {
      * @param message Message to process in a job.
      * @param authentication Identifies the user originally requesting this job.
      */
-    public void push( Message message, String authentication){
+    public UUID push(Message message, String authentication){
 
         Job job= new Job( message, authentication);
         job.setStatus( "Job creation request has been received.");
@@ -31,6 +38,8 @@ public abstract class Queue {
         job.toQueued();
         job.setStatus("Job creation request has been processed.");
         this.resource.put(job);
+
+        return job.getUuid();
     }
 
     /**
@@ -41,14 +50,28 @@ public abstract class Queue {
      */
     public Job pop(){
 
-        UUID uuid= this.read();
-        Job job= this.resource.get( uuid.toString(), Job.class);
+        Job job;
+        do{
+            UUID uuid= this.read();
+            job = getJob(uuid);
+        }while( job.getState()!= JobState.Queued);
         job.toProcessing();
         job.incrementTries();
         job.setStatus("Job processing in progress ...");
         this.resource.put(job);
 
         return job;
+    }
+
+    public void complete(Job job){
+
+        job.toComplete();
+        this.resource.put( job);
+        this.delete( job.getUuid());
+    }
+
+    public Job getJob(UUID uuid) {
+        return this.resource.get( uuid.toString(), Job.class);
     }
 
     /**
