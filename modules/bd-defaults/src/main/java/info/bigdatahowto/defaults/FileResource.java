@@ -21,12 +21,14 @@ public class FileResource extends Resource {
     private transient Logger logger= Logger.getLogger(
             this.getClass().getName());
 
-    private String directoryName= DEFAULT_DIRECTORY;
+    private String directoryName;
     private File directory;
 
     public FileResource() {
 
         super( "file");
+
+        this.setDirectoryName( DEFAULT_DIRECTORY);
     }
 
     /**

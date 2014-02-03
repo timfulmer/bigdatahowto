@@ -58,7 +58,7 @@ include "bd-core", "bd-default", "bd-api"
 We are keeping the structure within `modules` flat to make things simple.
 
 Next, setup the inter-module dependencies.  The bd-core module does not have
-any dependencies yet, and does not need a `gradle.build` file yet.
+any dependencies yet, and does not need a `gradle.build` file at the moment.
 
 ####bd-default
 ```
@@ -1184,3 +1184,6 @@ Gradle build, check; first iteration, done!
 Latest code for the project can be found in GitHub here:
 
   [https://github.com/timfulmer/bigdatahowto](https://github.com/timfulmer/bigdatahowto)
+
+Things will be different than documented here, simply because the project has
+moved on.

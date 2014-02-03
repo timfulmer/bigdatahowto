@@ -16,7 +16,8 @@ current letter combination in response to user typing.
 When a user submits a
 letter combination, it is
 added to the system.  Status updates tell the user when their new word has been
-processed.  Additional word stats may be displayed.
+processed.  Additional word stats may be displayed.  We'll call it _WorDoink!_
+for now.
 This gives us a nice example with all three aspects of a modern Big Data system:
 
  - Combinatorial data complexity;
@@ -52,7 +53,7 @@ Ask the system the current count of a letter combination, or
 word:
 
 ```
-    GET /public/<word>/count
+    GET /data/wordoink/<word>/count
 ```
 
 Returns the count property of the meta data stored with key '`<word>`'.
@@ -61,7 +62,7 @@ Returns the count property of the meta data stored with key '`<word>`'.
 Submit a word to the system for counting:
 
 ```
-    POST /public/<word> "function(env,word,meta){
+    POST /data/wordoink/<word> "function(env,word,meta){
         // Input validation.
         if(!word || word.length>7) return false;
         // Define stem behavior.
@@ -90,7 +91,7 @@ Returns a Job UUID.
 Query the status of a word submission:
 
 ```
-    GET /jobs/<uuid>
+    GET /job/<uuid>
 ```
 
 Returns Job status.
@@ -151,4 +152,3 @@ BD API with the following methods:
  - Query job;
  - Query metadata;
  - Process job;
- - Delete message.

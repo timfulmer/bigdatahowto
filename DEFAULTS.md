@@ -4,7 +4,8 @@ A refreshingly technology independent view of Big Data.
 
 In this fourth installment we drill down on a quick implementation of bd-core.
 The focus of this one is on getting a system up and running; we'll be a little
-fast and loose with no test case coverage for the first iterations.  Woohoo!
+fast and loose with less emphasis on test case coverage for the first
+iterations.  Woohoo!
 
 ##JavaScriptProcessor
 

@@ -119,7 +119,7 @@ the above Big Data Design Pattern using the following:
 - Play & Scala Runtime Environment
 - SQS for Fault Tolerance and Error Recovery
 - S3 for Long Term Storage
-- ElastiCache for Input & Read Models
+- Caching with ElastiCache
 - Deployed on EC2
 - NGINX Web Proxy
 
