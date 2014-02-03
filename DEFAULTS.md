@@ -3,7 +3,7 @@
 A refreshingly technology independent view of Big Data.
 
 In this fourth installment we drill down on a quick implementation of bd-core.
-The focus of this one on getting a system up and running; we'll be a little
+The focus of this one is on getting a system up and running; we'll be a little
 fast and loose with no test case coverage for the first iterations.  Woohoo!
 
 ##JavaScriptProcessor
@@ -22,49 +22,43 @@ function parseResults(result){
 }
 var env= {};
 var meta= {};
+// inject meta
+%s
+// inject behavior function
 var results= %s(env,key,meta);
 if( !results){
   processingResult.continueProcessing= false;
-}else if( toString.call(results) === "[object Array]"){
+}else if( toString.call(results) === '[object Array]'){
   results.forEach(function(result){
     parseResults(result);
   });
 }
 ```
 
-You'll notice a few gotcha's here.  First off we're using String.format to
-inject the behavior function from the `Message` instance, and execute it using
-the () operator.
+You'll notice a few gotcha's here.  First off we're using `String.format` to
+inject meta data from `Message.values`.  Turns out going between a Java `Map`
+and a JavaScript `Object` is not the easiest thing in the world using Rhino.
+We're also injecting the behavior function from the `Message` instance in the
+same way, and execute it using
+the () operator in `var results= %s(env,key,meta);`.
 
-Next, it turns out passing in a `Map` to JavaScript through the Binding
-mechanism does not map to a native JavaScript object.  Since this:
-`meta.count= 0` is a lot more JavaScript than this: `meta.put('count', 0)`,
-we create the meta object in the glue code and reference it through the binding.
-Rhino creates a `Map` subclass to model JavaScript objects, which can be set
-easily back to the `Message` instance.
+Instantiating a Java object from JavaScript presents some
+challenges as well.  A quick helper method on `ProcessingResult` instantiates
+new
+`Message` instances based on the JavaScript objects created in the injected
+behavior function.
 
-Similarly instantiating a Java object from JavaScript presents similar
-challenges.  A quick helper method on `ProcessingResult` instantiates new
-`Message` instances based on the JavaScript objects created in the passed in
-JavaScript function.
-
-Sprinkle in a little error handling, and the complete Processor.process method
-implementation looks like:
+Sprinkle in a little error handling, and the Processor.process method
+implementation looks something like:
 
 ```
         ScriptEngineManager factory = new ScriptEngineManager();
         ScriptEngine engine = factory.getEngineByName("JavaScript");
-        Bindings bindings= new SimpleBindings();
         bindings.put( "key", message.getMessageKey().getKey());
         ProcessingResult processingResult= new ProcessingResult();
-        processingResult.setMessage( message);
         bindings.put( "processingResult", processingResult);
-
         StringWriter errorWriter= new StringWriter();
         engine.getContext().setErrorWriter( errorWriter);
-
-        String script= String.format( JS_TEMPLATE, message.getBehavior().get(
-                "persist"));
         try {
 
             engine.eval(script, bindings);
@@ -76,7 +70,9 @@ implementation looks like:
 
             throw new RuntimeException(msg, e);
         }
-        processingResult.getMessage().setValues( (Map)bindings.get( "meta"));
+        //noinspection unchecked
+        message.setValues( new HashMap( (Map)bindings.get( "meta")));
+        processingResult.setMessage( message);
 
         return processingResult;
 ```
@@ -84,12 +80,14 @@ implementation looks like:
 A little refactoring gives us the `Processor.error` implementation as well:
 
 ```
-        String script= String.format(JS_ERROR_TEMPLATE,
-                message.getBehavior().get( "error"));
+        String script= composeScript(message,
+                this.javaScriptProcessorTemplate.errorWithMeta(),
+                this.javaScriptProcessorTemplate.errorWithoutMeta(),
+                message.getBehavior().get("error"));
         Bindings bindings= new SimpleBindings();
         bindings.put( "tries", tries);
 
-        return this.getProcessingResult( message, script, bindings);
+        return this.getProcessingResult(message, script, bindings);
 ```
 
 ##InMemoryQueue

@@ -1,4 +1,4 @@
-package info.bigdatahowto.defaults;
+package info.bigdatahowto.defaults.js;
 
 import info.bigdatahowto.core.Message;
 import info.bigdatahowto.core.ProcessingResult;
@@ -7,6 +7,7 @@ import org.junit.Test;
 /**
  * @author timfulmer
  */
+@SuppressWarnings("unchecked")
 public class JavaScriptProcessorTest {
 
     @Test
@@ -25,8 +26,15 @@ public class JavaScriptProcessorTest {
                 "JavaScriptProcessor.message is not populated.";
         assert processingResult.getMessage().getValues()!= null:
                 "JavaScriptProcessor.message.values is not populated.";
-        assert processingResult.getMessage().getValues().containsKey( "processing"):
+        assert processingResult.getMessage().getValues().containsKey( "testing"):
                 "JavaScriptProcessor.message.values does not contain key.";
+        assert processingResult.getMessage().getValues().get(
+                "testing").equals( "testing"):
+                "JavaScriptProcessor.message.values does not contain key.";
+        assert processingResult.getMessage().getValues().size()== 2:
+                "JavaScriptProcessor.process processingResult.message.values is incorrect size.";
+        assert processingResult.getMessage().getValues().containsKey( "processing"):
+                "JavaScriptProcessor.process processingResult.message.values does not contain key.";
         assert processingResult.getMessage().getValues().get(
                         "processing").equals( Boolean.TRUE):
                 "JavaScriptProcessor.message.values does not contain key.";
@@ -81,6 +89,36 @@ public class JavaScriptProcessorTest {
                 "JavaScriptProcessor.message is not populated.";
         assert processingResult.getMessage().getValues()!= null:
                 "JavaScriptProcessor.message.values is not populated.";
+        assert processingResult.getMessage().getValues().containsKey( "processing"):
+                "JavaScriptProcessor.message.values does not contain key.";
+        assert processingResult.getMessage().getValues().get(
+                "processing").equals( Boolean.TRUE):
+                "JavaScriptProcessor.message.values does not contain key.";
+    }
+
+    @Test
+    public void testScriptEngine_Meta(){
+
+        Message message= new Message();
+        message.setKey( "//test-resource/test-context/test-key");
+        message.getValues().put( "testing","testing");
+        message.getBehavior().put( "persist",
+                "function(env,key,meta){meta.testing='modified';meta.processing=true; return true;}");
+        JavaScriptProcessor javaScriptProcessor= new JavaScriptProcessor();
+        ProcessingResult processingResult= javaScriptProcessor.process(message);
+        assert processingResult!= null:
+                "JavaScriptProcessor.process did not return a processingResult.";
+        assert processingResult.getMessage()!= null:
+                "JavaScriptProcessor.message is not populated.";
+        assert processingResult.getMessage().getValues()!= null:
+                "JavaScriptProcessor.message.values is not populated.";
+        assert processingResult.getMessage().getValues().size()== 2:
+                "JavaScriptProcessor.process processingResult.message.values is incorrect size.";
+        assert processingResult.getMessage().getValues().containsKey( "testing"):
+                "JavaScriptProcessor.message.values does not contain key.";
+        assert processingResult.getMessage().getValues().get(
+                "testing").equals( "modified"):
+                "JavaScriptProcessor.message.values does not contain key.";
         assert processingResult.getMessage().getValues().containsKey( "processing"):
                 "JavaScriptProcessor.message.values does not contain key.";
         assert processingResult.getMessage().getValues().get(
