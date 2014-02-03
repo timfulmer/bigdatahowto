@@ -45,6 +45,8 @@ public class BdTest {
     public void before() throws IOException {
 
         this.bd= new Bd();
+
+        // tf - Clean any files from previous runs.
         File directory= new File(FileResource.DEFAULT_DIRECTORY);
         if( directory.exists()){
 
