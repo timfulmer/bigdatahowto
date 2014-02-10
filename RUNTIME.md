@@ -86,8 +86,8 @@ Pinging each service returns the correct results.
 
 ##Wire in bd-api
 
-At this point we've got everything needed to wire in bd-api.  Here we take a
-little departure into build tool hell.  With Gradle deploying to a local Maven
+At this point we've got everything needed to wire in bd-api.  With Gradle
+deploying to a local Maven
 repository, SBT is configured with a local repo resolver and a dependency is
 added:
 
@@ -187,7 +187,8 @@ First, let's take a look at GET performance against an empty file system.  It's
 a good idea to exclude `runtime/target` from your IDE paths before running these
 tests.  Let's push in a few messages:
 
- - `ab -n 1000 -p ./test/resources/abtest.js http://localhost:9000/data/wordoink/testing`
+ - `ab -n 1000 -p ./test/resources/abtest.js
+    http://localhost:9000/data/wordoink/testing`
 
 ```
               min  mean[+/-sd] median   max
