@@ -6,9 +6,9 @@ import info.bigdatahowto.defaults.FileResource;
 import info.bigdatahowto.defaults.InMemoryQueue;
 import info.bigdatahowto.defaults.js.JavaScriptProcessor;
 
-import java.util.HashMap;
-import java.util.Map;
 import java.util.UUID;
+
+import static org.apache.commons.collections.MapUtils.isEmpty;
 
 /**
  * External API to our Big Data system.
@@ -23,9 +23,14 @@ public class Bd {
 
     public Bd() {
 
+        this( null);
+    }
+
+    public Bd( String directory) {
+
         super();
 
-        Resource resource= new FileResource();
+        Resource resource= new FileResource( directory);
         Queue queue= new InMemoryQueue(resource);
         this.setQueue(queue);
         ResourceRoadie resourceRoadie= new ResourceRoadie(
@@ -35,14 +40,15 @@ public class Bd {
         this.setProcessor(new JavaScriptProcessor(queue, resourceRoadie));
     }
 
-    public UUID addMessage( String key, Map values, String behavior,
-                            String behaviorType, Map<String,String> options,
+    public UUID addMessage( String key, String behaviorString,
+                            String behaviorType,
                             String authentication){
 
-        Map<String,String> behaviorMap= new HashMap<>( 1);
-        behaviorMap.put( behaviorType, behavior);
-        Message message= new Message( key, values, behaviorMap, options);
-        this.resourceRoadie.storeMessage( message, authentication);
+        MessageKey messageKey= new MessageKey( key);
+        Behavior behavior= new Behavior( BehaviorType.valueOf( behaviorType),
+                behaviorString);
+        Message message= this.resourceRoadie.storeMessage( messageKey,
+                behavior, authentication);
 
         return this.queue.push( message, authentication);
     }
@@ -57,7 +63,7 @@ public class Bd {
 
         Message message= this.resourceRoadie.accessMessage(
                 new MessageKey( key), authentication);
-        if( message== null){
+        if( message== null || isEmpty(message.getValues())){
 
             return null;
         }

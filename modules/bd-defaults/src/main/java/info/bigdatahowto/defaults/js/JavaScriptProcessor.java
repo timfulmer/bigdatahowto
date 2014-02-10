@@ -33,6 +33,7 @@ public class JavaScriptProcessor extends Processor {
 
     /**
      * Applies behavior to data defined in a message.
+     * TODO: Handle Get and Delete cases.
      *
      * @param message Message containing behavior and data.
      * @return Results of processing.
@@ -43,7 +44,7 @@ public class JavaScriptProcessor extends Processor {
         String script = composeScript(message,
                 this.javaScriptProcessorTemplate.processWithMeta(),
                 this.javaScriptProcessorTemplate.processWithoutMeta(),
-                message.getBehavior().get( "persist"));
+                message.getBehavior().get( BehaviorType.Persist).getFunction());
         Bindings bindings= new SimpleBindings();
 
         return getProcessingResult(message, script, bindings);
@@ -63,7 +64,7 @@ public class JavaScriptProcessor extends Processor {
         String script= composeScript(message,
                 this.javaScriptProcessorTemplate.errorWithMeta(),
                 this.javaScriptProcessorTemplate.errorWithoutMeta(),
-                message.getBehavior().get("error"));
+                message.getBehavior().get(BehaviorType.Error).getFunction());
         Bindings bindings= new SimpleBindings();
         bindings.put( "tries", tries);
 
@@ -94,6 +95,7 @@ public class JavaScriptProcessor extends Processor {
         return script;
     }
 
+    @SuppressWarnings("unchecked")
     private ProcessingResult getProcessingResult(
             Message message, String script, Bindings bindings) {
 
@@ -115,7 +117,6 @@ public class JavaScriptProcessor extends Processor {
 
             throw new RuntimeException(msg, e);
         }
-        //noinspection unchecked
         message.setValues( new HashMap( (Map)bindings.get( "meta")));
         processingResult.setMessage( message);
 

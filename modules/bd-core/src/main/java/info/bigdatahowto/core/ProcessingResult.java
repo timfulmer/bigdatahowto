@@ -34,21 +34,29 @@ public class ProcessingResult {
 
     public void addMessage( String key){
 
-        this.addMessage(key, new HashMap(), null);
+        this.addMessage(key, new HashMap(), null, null);
     }
 
     public void addMessage( String key, Map values){
 
-        this.addMessage( key, values, null);
+        this.addMessage( key, values, null, null);
     }
 
-    public void addMessage( String key, String behavior){
+    public void addMessage( String key, String behaviorType,
+                            String behaviorString){
 
-        this.addMessage(key, new HashMap(), behavior);
+        this.addMessage(key, new HashMap(), behaviorType, behaviorString);
     }
 
-    public void addMessage( String key, Map values, String behavior){
+    public void addMessage( String key, Map values, String behaviorType,
+                            String behaviorString){
 
+        Behavior behavior= null;
+        if( behaviorType!= null && behaviorString!= null){
+
+            behavior= new Behavior( BehaviorType.valueOf( behaviorType),
+                    behaviorString);
+        }
         this.messages.add(new NewMessage(key, behavior, values));
     }
 
@@ -60,15 +68,9 @@ public class ProcessingResult {
         this.message = message;
     }
 
-    public List<Message> getMessages() {
+    public List<NewMessage> getMessages() {
 
-        List<Message> messages= new ArrayList<>( this.messages.size());
-        for( NewMessage newMessage: this.messages){
-
-            messages.add( newMessage.toMessage( this.getMessage().getMessageKey()));
-        }
-
-        return messages;
+        return this.messages;
     }
 
     public boolean isContinueProcessing() {
@@ -79,26 +81,24 @@ public class ProcessingResult {
         this.continueProcessing = continueProcessing;
     }
 
-    private class NewMessage{
-        String key, behavior;
-        Map values;
+    public class NewMessage{
+        public String key;
+        public Behavior behavior;
+        public Map values;
 
-        private NewMessage(String key, String behavior, Map values) {
+        public NewMessage(String key, Behavior behavior, Map values) {
             this.key = key;
             this.behavior = behavior;
             this.values = values;
         }
 
-        public Message toMessage(MessageKey messageKey) {
-            Map<String,String> behavior= new HashMap<>(1);
-            behavior.put( "persist", this.behavior);
+        MessageKey makeKey(){
 
             // TODO: Handle additional key formats.
-            String key= String.format( "//%s/%s/%s",
-                    messageKey.getResourceName(), messageKey.getUserContext(),
-                    this.key);
-            return new Message( key, this.values, behavior,
-                    new HashMap<String,String>(0));
+            return new MessageKey( String.format( "//%s/%s/%s",
+                    getMessage().getMessageKey().getResourceName(),
+                    getMessage().getMessageKey().getUserContext(),
+                    this.key));
         }
     }
 }

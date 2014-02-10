@@ -26,7 +26,7 @@ public class Message extends AggregateRoot {
     /**
      * Map of JavaScript behavior functions.
      */
-    private Map<String,String> behavior= new HashMap<>();
+    private Map<BehaviorType,Behavior> behavior= new HashMap<>();
 
     /**
      * Map of options used to configure message processing.
@@ -40,11 +40,11 @@ public class Message extends AggregateRoot {
 
     public Message( String key){
 
-        this(key, null, new HashMap<String, String>(0),
+        this(key, null, new HashMap<BehaviorType,Behavior>(0),
                 new HashMap<String, String>(0));
     }
 
-    public Message( String key, Map values, Map<String, String> behavior,
+    public Message( String key, Map values, Map<BehaviorType,Behavior> behavior,
             Map<String, String> options) {
 
         this();
@@ -82,11 +82,11 @@ public class Message extends AggregateRoot {
         this.values = values;
     }
 
-    public Map<String, String> getBehavior() {
+    public Map<BehaviorType, Behavior> getBehavior() {
         return behavior;
     }
 
-    public void setBehavior(Map<String, String> behavior) {
+    public void setBehavior(Map<BehaviorType, Behavior> behavior) {
         this.behavior = behavior;
     }
 

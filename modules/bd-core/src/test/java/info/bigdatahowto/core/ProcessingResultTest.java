@@ -41,12 +41,14 @@ public class ProcessingResultTest {
         Message message= fakeMessage();
         processingResult.setMessage( message);
         processingResult.addMessage( "test-key01");
-        processingResult.addMessage( "test-key02", "test-behavior");
+        processingResult.addMessage( "test-key02",
+                BehaviorType.Persist.toString(), "test-behavior");
         processingResult.addMessage( "test-key03", new HashMap());
         processingResult.addMessage( "test-key04", new HashMap(),
-                "test-behavior");
+                BehaviorType.Persist.toString(), "test-behavior");
 
-        List<Message> messages= processingResult.getMessages();
+        List<ProcessingResult.NewMessage> messages=
+                processingResult.getMessages();
         assert messages!= null:
                 "ProcessingResult.messages is not implemented correctly.";
         assert messages.size()== 4:

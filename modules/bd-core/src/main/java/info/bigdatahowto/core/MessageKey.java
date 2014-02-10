@@ -8,6 +8,8 @@ package info.bigdatahowto.core;
  */
 public class MessageKey {
 
+    private static final String DEFAULT_RESOURCE_NAME= "file";
+
     /**
      * Identifies a resource instance.
      */
@@ -36,6 +38,8 @@ public class MessageKey {
     public MessageKey() {
 
         super();
+
+        this.setResourceName( DEFAULT_RESOURCE_NAME);
     }
 
     /**
@@ -49,16 +53,27 @@ public class MessageKey {
 
         this();
 
-        // TODO: Build up defaults.
-
         this.setKey( key);
-        int firstSeparator= key.indexOf("/", 2);
-        this.setResourceName( key.substring( 2, firstSeparator));
-        int secondSeparator= key.indexOf("/", firstSeparator + 1);
-        this.setUserContext(key.substring(firstSeparator + 1,
-                secondSeparator));
-        this.setUserKey( key.substring( secondSeparator+ 1));
-        this.setAggregateRootKey(key.substring(firstSeparator + 1));
+        if( key.startsWith( "//")){
+
+            int pivot= key.indexOf( "/", 2);
+            this.setResourceName( key.substring( 2, pivot));
+            key= key.substring( pivot+ 1);
+        }
+        if( key.startsWith( "/")){
+
+            key= key.substring( 1);
+        }
+        if( !key.contains( "/")){
+
+            throw new IllegalArgumentException(
+                    String.format( "MessageKey '%s' must have at least " +
+                            "<context>/<key>.", getKey()));
+        }
+        this.setAggregateRootKey( key);
+        int pivot= key.indexOf( "/");
+        this.setUserContext( key.substring( 0, pivot));
+        this.setUserKey( key.substring( pivot+ 1));
     }
 
     public String getResourceName() {

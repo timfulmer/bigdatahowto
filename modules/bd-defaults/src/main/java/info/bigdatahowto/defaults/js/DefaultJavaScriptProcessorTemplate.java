@@ -14,9 +14,9 @@ public class DefaultJavaScriptProcessorTemplate
                     "  if(result.persist) persist=result.persist.toString();\n" +
                     "  var meta= result.meta;\n" +
                     "  if(persist && meta){\n" +
-                    "    processingResult.addMessage(result.key,result.meta,persist);\n" +
+                    "    processingResult.addMessage(result.key,result.meta,'Persist',persist);\n" +
                     "  }else if(persist){\n" +
-                    "    processingResult.addMessage(result.key,persist);\n" +
+                    "    processingResult.addMessage(result.key,'Persist',persist);\n" +
                     "  }else if(meta){\n" +
                     "    processingResult.addMessage(result.key,result.meta);\n" +
                     "  }else{\n" +
@@ -42,9 +42,9 @@ public class DefaultJavaScriptProcessorTemplate
                     "  if(result.persist) persist=result.persist.toString();\n" +
                     "  var meta= result.meta;\n" +
                     "  if(persist && meta){\n" +
-                    "    processingResult.addMessage(result.key,result.meta,persist);\n" +
+                    "    processingResult.addMessage(result.key,result.meta,'Persist',persist);\n" +
                     "  }else if(persist){\n" +
-                    "    processingResult.addMessage(result.key,persist);\n" +
+                    "    processingResult.addMessage(result.key,'Persist',persist);\n" +
                     "  }else if(meta){\n" +
                     "    processingResult.addMessage(result.key,result.meta);\n" +
                     "  }else{\n" +
@@ -66,7 +66,16 @@ public class DefaultJavaScriptProcessorTemplate
             "function parseResults(result){\n" +
                     "  var persist;\n" +
                     "  if(result.persist) persist=result.persist.toString();\n" +
-                    "  processingResult.addMessage(result.key,result.meta,persist);\n" +
+                    "  var meta= result.meta;\n" +
+                    "  if(persist && meta){\n" +
+                    "    processingResult.addMessage(result.key,result.meta,'Persist',persist);\n" +
+                    "  }else if(persist){\n" +
+                    "    processingResult.addMessage(result.key,'Persist',persist);\n" +
+                    "  }else if(meta){\n" +
+                    "    processingResult.addMessage(result.key,result.meta);\n" +
+                    "  }else{\n" +
+                    "    processingResult.addMessage(result.key);\n" +
+                    "  }\n" +
                     "}\n" +
                     "var env= {};\n" +
                     "var meta= {};\n" +
@@ -85,7 +94,16 @@ public class DefaultJavaScriptProcessorTemplate
             "function parseResults(result){\n" +
                     "  var persist;\n" +
                     "  if(result.persist) persist=result.persist.toString();\n" +
-                    "  processingResult.addMessage(result.key,result.meta,persist);\n" +
+                    "  var meta= result.meta;\n" +
+                    "  if(persist && meta){\n" +
+                    "    processingResult.addMessage(result.key,result.meta,'Persist',persist);\n" +
+                    "  }else if(persist){\n" +
+                    "    processingResult.addMessage(result.key,'Persist',persist);\n" +
+                    "  }else if(meta){\n" +
+                    "    processingResult.addMessage(result.key,result.meta);\n" +
+                    "  }else{\n" +
+                    "    processingResult.addMessage(result.key);\n" +
+                    "  }\n" +
                     "}\n" +
                     "var env= {};\n" +
                     "var meta= {};\n" +

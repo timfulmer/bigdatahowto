@@ -37,18 +37,38 @@ public class ResourceRoadie {
         return resource.get(messageKey.getAggregateRootKey(), Message.class);
     }
 
-    public void storeMessage(Message message) {
+    /**
+     * Checks if authentication has access to an existing message.  If so, that
+     * message's metadata is used.  Otherwise a new message is created and
+     * provisioned for authentication.  Message's behavior is updated with
+     * new behavior.
+     *
+     * @param messageKey Identifies a message.
+     * @param behavior New behavior.
+     * @param authentication Authenticates access to messages.
+     */
+    public Message storeMessage(MessageKey messageKey, Behavior behavior,
+                             String authentication) {
 
-        this.storeMessage(message, null);
-    }
+        assert authentication!= null:
+                "Authentication cannot be null.";
 
-    public void storeMessage(Message message, String authentication) {
+        // tf - Merge meta data for existing key.
+        Message message= this.accessMessage( messageKey, authentication);
+        if( message== null){
 
-        if( authentication!= null){
-
+            message= new Message( messageKey.getKey());
             this.authenticator.provision( message.getMessageKey().getKey(),
                     authentication);
         }
+        message.getBehavior().put( behavior.getBehaviorType(), behavior);
+        this.storeMessage( message);
+
+        return message;
+    }
+
+    public void storeMessage(Message message) {
+
         Resource resource= this.resources.get(
                 message.getMessageKey().getResourceName());
         resource.put(message);

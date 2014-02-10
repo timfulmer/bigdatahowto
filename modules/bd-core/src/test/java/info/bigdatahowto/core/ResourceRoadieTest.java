@@ -45,7 +45,7 @@ public class ResourceRoadieTest {
 
         this.resourceRoadie.storeMessage(message);
 
-        this.resourceRoadie.storeMessage( message, authentication);
+        this.resourceRoadie.storeMessage( message);
 
         verify( this.resourceMock, times(2)).put(message);
         verify( this.authenticatorMock).authorize(

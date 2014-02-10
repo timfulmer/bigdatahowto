@@ -1,6 +1,7 @@
 package info.bigdatahowto.core;
 
 import java.util.UUID;
+import java.util.logging.Logger;
 
 /**
  * Represents a queuing system.
@@ -8,6 +9,9 @@ import java.util.UUID;
  * @author timfulmer
  */
 public abstract class Queue {
+
+    private transient Logger logger= Logger.getLogger(
+            this.getClass().getName());
 
     /**
      * Persistent storage for jobs.
@@ -53,10 +57,16 @@ public abstract class Queue {
         Job job;
         do{
             UUID uuid= this.read();
+            if( uuid== null){
+
+                this.logger.info( "Job queue empty, returning null.");
+
+                // tf - There are no jobs in the queue.
+                return null;
+            }
             job = getJob(uuid);
         }while( job.getState()!= JobState.Queued);
         job.toProcessing();
-        job.incrementTries();
         job.setStatus("Job processing in progress ...");
         this.resource.put(job);
 

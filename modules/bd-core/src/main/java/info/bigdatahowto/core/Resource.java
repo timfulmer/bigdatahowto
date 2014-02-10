@@ -4,6 +4,7 @@ import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
 
 import java.io.IOException;
+import java.util.Date;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 
@@ -69,6 +70,8 @@ public abstract class Resource {
 
         try {
 
+            // TODO: TestMe
+            aggregateRoot.setModifiedDate( new Date());
             String json= this.objectMapper.writeValueAsString( aggregateRoot);
             this.write(aggregateRoot.resourceKey(), json);
         } catch (JsonProcessingException e) {

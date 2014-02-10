@@ -1,5 +1,7 @@
 package info.bigdatahowto.defaults.js;
 
+import info.bigdatahowto.core.Behavior;
+import info.bigdatahowto.core.BehaviorType;
 import info.bigdatahowto.core.Message;
 import info.bigdatahowto.core.ProcessingResult;
 import org.junit.Test;
@@ -16,8 +18,9 @@ public class JavaScriptProcessorTest {
         Message message= new Message();
         message.setKey( "//test-resource/test-context/test-key");
         message.getValues().put( "testing","testing");
-        message.getBehavior().put( "persist",
+        Behavior behavior= new Behavior(BehaviorType.Persist,
                 "function(env,key,meta){meta.processing=true; return true;}");
+        message.getBehavior().put( behavior.getBehaviorType(), behavior);
         JavaScriptProcessor javaScriptProcessor= new JavaScriptProcessor(null, null);
         ProcessingResult processingResult= javaScriptProcessor.process(message);
         assert processingResult!= null:
@@ -46,17 +49,18 @@ public class JavaScriptProcessorTest {
         Message message= new Message();
         message.setKey( "//test-resource/test-context/test-key");
         message.getValues().put( "testing","testing");
-        message.getBehavior().put( "persist",
+        Behavior behavior= new Behavior(BehaviorType.Persist,
                 "function(env,key,meta){var newMessages=[];\n" +
-                        "for(var i=0;i<5;i++){\n" +
-                        "  var newMessage={};\n" +
-                        "  newMessage.key='//test-resource/test-context/test-key0'+i;\n" +
-                        "  newMessage.meta= {};\n" +
-                        "  newMessage.meta.dynamic=true;\n" +
-                        "  newMessage.persist=function(env,key,values){return true;}\n" +
-                        "  newMessages.push(newMessage);\n" +
-                        "}\n" +
-                        "return newMessages;}");
+                "for(var i=0;i<5;i++){\n" +
+                "  var newMessage={};\n" +
+                "  newMessage.key='//test-resource/test-context/test-key0'+i;\n" +
+                "  newMessage.meta= {};\n" +
+                "  newMessage.meta.dynamic=true;\n" +
+                "  newMessage.persist=function(env,key,values){return true;}\n" +
+                "  newMessages.push(newMessage);\n" +
+                "}\n" +
+                "return newMessages;}");
+        message.getBehavior().put( behavior.getBehaviorType(), behavior);
         JavaScriptProcessor javaScriptProcessor= new JavaScriptProcessor(null, null);
         ProcessingResult processingResult= javaScriptProcessor.process(message);
         assert processingResult!= null:
@@ -65,11 +69,11 @@ public class JavaScriptProcessorTest {
                 "JavaScriptProcessor.process did not return processingResult.messages";
         assert processingResult.getMessages().size()== 5:
                 "JavaScriptProcessor.process did not return processingResult.messages";
-        assert processingResult.getMessages().get(0).getBehavior()!= null:
+        assert processingResult.getMessages().get(0).behavior!= null:
                 "JavaScriptProcessor.process did not return processingResult.messages.behavior";
-        assert processingResult.getMessages().get(0).getBehavior().containsKey( "persist"):
+        assert processingResult.getMessages().get(0).behavior.getBehaviorType()== BehaviorType.Persist:
                 "JavaScriptProcessor.process did not return processingResult.messages.behavior";
-        assert processingResult.getMessages().get(0).getBehavior().get("persist").equals(
+        assert processingResult.getMessages().get(0).behavior.getFunction().equals(
                 "\nfunction (env, key, values) {\n    return true;\n}\n");
     }
 
@@ -79,8 +83,9 @@ public class JavaScriptProcessorTest {
         Message message= new Message();
         message.setKey( "//test-resource/test-context/test-key");
         message.getValues().put( "testing","testing");
-        message.getBehavior().put( "error",
+        Behavior behavior= new Behavior(BehaviorType.Error,
                 "function(env,key,meta){meta.processing=true; return true;}");
+        message.getBehavior().put( behavior.getBehaviorType(), behavior);
         JavaScriptProcessor javaScriptProcessor= new JavaScriptProcessor(null, null);
         ProcessingResult processingResult= javaScriptProcessor.error(message, 5);
         assert processingResult!= null:
@@ -102,8 +107,9 @@ public class JavaScriptProcessorTest {
         Message message= new Message();
         message.setKey( "//test-resource/test-context/test-key");
         message.getValues().put( "testing","testing");
-        message.getBehavior().put( "persist",
+        Behavior behavior= new Behavior(BehaviorType.Persist,
                 "function(env,key,meta){meta.testing='modified';meta.processing=true; return true;}");
+        message.getBehavior().put( behavior.getBehaviorType(), behavior);
         JavaScriptProcessor javaScriptProcessor= new JavaScriptProcessor(null, null);
         ProcessingResult processingResult= javaScriptProcessor.process(message);
         assert processingResult!= null:

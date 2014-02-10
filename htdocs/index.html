@@ -149,6 +149,9 @@
     <script>
         $(document).ready(function(){
             Sammy(function() {
+                this.get('#/runtime', function(context) {
+                    renderMarkdown('RUNTIME.md');
+                });
                 this.get('#/api', function(context) {
                     renderMarkdown('API.md');
                 });
@@ -188,7 +191,8 @@
                                         "<li><a href='#/core'>3</a></li>"+
                                         "<li><a href='#/defaults'>4</a></li>"+
                                         "<li><a href='#/api'>5</a></li>"+
-                                        "<li><a href='#/api'>&raquo;</a></li>"+
+                                        "<li><a href='#/runtime'>6</a></li>"+
+                                        "<li><a href='#/runtime'>&raquo;</a></li>"+
                                         "</ul></div>");
                             }
                             divId= element.firstChild.nodeValue.replace(

@@ -72,11 +72,12 @@ public class JobTest {
         Job job= fakeJob(message);
 
         this.tryState(JobState.Queued, job, job.getClass().getMethod( "toQueued"));
-        this.tryState(JobState.Processing, job, job.getClass().getMethod( "toQueued"));
         this.tryState(JobState.Complete, job, job.getClass().getMethod( "toQueued"));
         this.tryState(JobState.Error, job, job.getClass().getMethod( "toQueued"));
 
         job.setState(JobState.Created);
+        job.toQueued();
+        job.setState(JobState.Processing);
         job.toQueued();
     }
 

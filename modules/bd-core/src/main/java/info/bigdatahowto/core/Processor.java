@@ -73,9 +73,14 @@ public abstract class Processor {
                         job.toString());
                 this.logger.log( Level.WARNING, msg, t);
 
-                if( message.getBehavior().containsKey( "error")){
+                if( message.getBehavior().containsKey( BehaviorType.Error)){
 
                     processingResult= this.error( message, job.getTries());
+                    if( processingResult!= null
+                            && processingResult.isContinueProcessing()){
+
+                        job.toQueued();
+                    }
                 }
             }else{
 
@@ -104,11 +109,13 @@ public abstract class Processor {
         }
         if( !isEmpty( processingResult.getMessages())){
 
-            for( Message newMessage: processingResult.getMessages()){
+            for(ProcessingResult.NewMessage newMessage:
+                    processingResult.getMessages()){
 
-                this.resourceRoadie.storeMessage( newMessage,
+                Message m= this.resourceRoadie.storeMessage(
+                        newMessage.makeKey(), newMessage.behavior,
                         job.getAuthentication());
-                this.queue.push( newMessage, job.getAuthentication());
+                this.queue.push( m, job.getAuthentication());
             }
         }
 

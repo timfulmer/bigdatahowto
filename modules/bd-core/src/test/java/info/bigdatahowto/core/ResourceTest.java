@@ -15,6 +15,7 @@ import static info.bigdatahowto.core.TestUtils.fakeMessage;
 public class ResourceTest {
     
     private static final String RESOURCE_NAME= "test-resource";
+    private static final String AUTHENTICATION= "test-authentication";
 
     private final Map<String,String> hackery= new HashMap<>(1);
     private Resource resource;

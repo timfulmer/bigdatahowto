@@ -107,7 +107,8 @@ public class Job extends AggregateRoot {
      */
     public void toQueued() {
 
-        this.checkAndSetState(JobState.Queued, JobState.Created, "queue");
+        this.checkAndSetState(JobState.Queued, "queue", JobState.Created,
+                JobState.Processing);
     }
 
     /**
@@ -115,7 +116,7 @@ public class Job extends AggregateRoot {
      */
     public void toProcessing() {
 
-        this.checkAndSetState(JobState.Processing, JobState.Queued, "process");
+        this.checkAndSetState(JobState.Processing, "process", JobState.Queued);
         this.incrementTries();
     }
 
@@ -124,8 +125,8 @@ public class Job extends AggregateRoot {
      */
     public void toComplete() {
 
-        this.checkAndSetState(JobState.Complete, JobState.Processing,
-                "complete");
+        this.checkAndSetState(JobState.Complete, "complete",
+                JobState.Processing);
     }
 
     /**
@@ -133,13 +134,23 @@ public class Job extends AggregateRoot {
      */
     public void toError() {
 
-        this.checkAndSetState(JobState.Error, JobState.Processing, "error");
+        this.checkAndSetState(JobState.Error, "error", JobState.Processing);
     }
 
     private void checkAndSetState(
-            JobState toState, JobState fromState, String action) {
+            JobState toState, String action, JobState... fromStates) {
 
-        if( this.getState()!= fromState){
+        boolean found= false;
+        for( JobState state: fromStates){
+
+            if( this.getState()== state){
+
+                found= true;
+                break;
+            }
+        }
+        if( !found){
+
             throw new IllegalStateException( String.format(
                     "Cannot '%s' a job in state '%s'.", action,
                     this.getState()));

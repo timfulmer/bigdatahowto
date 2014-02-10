@@ -1,0 +1,15 @@
+# Routes
+# This file defines all application routes (Higher priority routes first)
+# ~~~~
+
+# Home page
+GET         /                                  controllers.Application.index
+
+GET         /data/*key                         controllers.Application.getData( key:String)
+POST        /data/*key                         controllers.Application.postData( key:String)
+
+GET         /job/poll                          controllers.Application.pollJob()
+GET         /job/:jobUuid                      controllers.Application.getJob( jobUuid:java.util.UUID)
+
+# Map static resources from the /public folder to the /assets URL path
+GET         /assets/*file                      controllers.Assets.at(path="/public", file)

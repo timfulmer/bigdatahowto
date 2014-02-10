@@ -69,12 +69,12 @@ Submit a word to the system for counting:
         env.persistFunction= function(env,word,meta){
             // Update count returned from the GET request.
             if(!meta.count) meta.count= 0;
-            meta.count= meta.count+ 1;
+            meta.count++;
             return true;
         }
         // Set meta data for this word.
         if(!meta.count) meta.count= 0;
-        meta.count= meta.count+ 1;
+        meta.count++;
         // Decompose into stems, run persistFunction on each one.
         var stems= [];
         for(var i=1; i<word.length;i++){

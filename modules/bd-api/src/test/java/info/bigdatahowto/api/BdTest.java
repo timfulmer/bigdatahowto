@@ -1,15 +1,16 @@
 package info.bigdatahowto.api;
 
+import info.bigdatahowto.core.BehaviorType;
 import info.bigdatahowto.core.Job;
 import info.bigdatahowto.core.JobState;
 import info.bigdatahowto.defaults.FileResource;
 import org.apache.commons.io.FileUtils;
+import org.junit.After;
 import org.junit.Before;
 import org.junit.Test;
 
 import java.io.File;
 import java.io.IOException;
-import java.util.HashMap;
 import java.util.UUID;
 
 /**
@@ -24,12 +25,12 @@ public class BdTest {
             "        env.persistFunction= function(env,word,meta){\n" +
             "            // Update count returned from the GET request.\n" +
             "            if(!meta.count) meta.count= 0;\n" +
-            "            meta.count= meta.count+ 1;\n" +
+            "            meta.count++;\n" +
             "            return true;\n" +
             "        }\n" +
             "        // Set meta data for this word.\n" +
             "        if(!meta.count) meta.count= 0;\n" +
-            "        meta.count= meta.count+ 1;\n" +
+            "        meta.count++;\n" +
             "        // Decompose into stems, run persistFunction on each one.\n" +
             "        var stems= [];\n" +
             "        for(var i=1; i<word.length;i++){\n" +
@@ -45,13 +46,13 @@ public class BdTest {
     public void before() throws IOException {
 
         this.bd= new Bd();
+        this.clean();
+    }
 
-        // tf - Clean any files from previous runs.
-        File directory= new File(FileResource.DEFAULT_DIRECTORY);
-        if( directory.exists()){
+    @After
+    public void after() throws IOException {
 
-            FileUtils.cleanDirectory( directory);
-        }
+        this.clean();
     }
 
     @Test
@@ -60,8 +61,8 @@ public class BdTest {
         String word= "testing";
         String key= this.makeKey( word);
         String authentication= "test-authentication";
-        UUID jobUuid= this.bd.addMessage( key, new HashMap(), BEHAVIOR,
-                "persist", new HashMap<String,String>(), authentication);
+        UUID jobUuid= this.bd.addMessage( key, BEHAVIOR,
+                BehaviorType.Persist.toString(), authentication);
         assert jobUuid!= null:
                 "Bd.addMessage is not implemented correctly.";
 
@@ -86,6 +87,12 @@ public class BdTest {
 
         this.bd.processJob();
 
+        job= this.bd.queryJob( jobUuid);
+        assert JobState.Complete== job.getState():
+                "Job processing incorrect.";
+        assert 1== job.getTries():
+                "Job processing incorrect.";
+
         object= this.bd.queryMetaData( key, "count", authentication);
         this.assertCount(object);
 
@@ -102,6 +109,40 @@ public class BdTest {
         }
     }
 
+    @Test
+    public void testPollJob(){
+
+        this.bd.processJob();
+    }
+
+    @Test
+    public void testDoubleTap(){
+
+        String word= "testing";
+        String key= this.makeKey( word);
+        String authentication= "test-authentication";
+        this.bd.addMessage( key, BEHAVIOR, BehaviorType.Persist.toString(),
+                authentication);
+        this.bd.addMessage( key, BEHAVIOR, BehaviorType.Persist.toString(),
+                authentication);
+        this.bd.processJob();
+        this.bd.processJob();
+
+        Integer count= ((Double) this.bd.queryMetaData( key, "count",
+                authentication)).intValue();
+        assert count.equals( 2): "Count is not incrementing.";
+
+        // tf - Check on spawned jobs.
+        for( int i= 0; i< 12; i++){
+
+            this.bd.processJob();
+        }
+
+        count= ((Double) this.bd.queryMetaData( makeKey( "tes"),
+                "count", authentication)).intValue();
+        assert count.equals( 2): "Count is not incrementing.";
+    }
+
     public void assertCount(Object object) {
         assert object!= null:
                 "Bd.queryMetaData is not implemented correctly.";
@@ -109,6 +150,16 @@ public class BdTest {
                 "Bd.queryMetaData is not implemented correctly.";
         assert (object).equals( 1.0):
                 "Bd.queryMetaData is not implemented correctly.";
+    }
+
+    private void clean() throws IOException {
+
+        // tf - Clean any files from previous runs.
+        File directory= new File(FileResource.DEFAULT_DIRECTORY);
+        if( directory.exists()){
+
+            FileUtils.cleanDirectory(directory);
+        }
     }
 
     private String makeKey( String word){

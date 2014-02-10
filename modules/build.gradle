@@ -1,8 +1,11 @@
 subprojects{
     apply plugin: 'java'
+    apply plugin: 'maven'
 
     sourceCompatibility = 1.7
-    version = '1.0'
+    version = '1.0-SNAPSHOT'
+
+    project.group = 'info.bigdatahowto'
 
     jar {
         manifest {

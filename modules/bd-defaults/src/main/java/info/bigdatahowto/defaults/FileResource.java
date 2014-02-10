@@ -16,7 +16,7 @@ import java.util.logging.Logger;
  */
 public class FileResource extends Resource {
 
-    public static final String DEFAULT_DIRECTORY= "modules/build/file-resource";
+    public static final String DEFAULT_DIRECTORY= "/tmp/file-resource";
 
     private transient Logger logger= Logger.getLogger(
             this.getClass().getName());
@@ -26,9 +26,18 @@ public class FileResource extends Resource {
 
     public FileResource() {
 
+        this( null);
+    }
+
+    public FileResource( String directoryName) {
+
         super( "file");
 
-        this.setDirectoryName( DEFAULT_DIRECTORY);
+        if( directoryName== null){
+
+            directoryName= DEFAULT_DIRECTORY;
+        }
+        this.setDirectoryName( directoryName);
     }
 
     /**
