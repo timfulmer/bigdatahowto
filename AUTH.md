@@ -4,9 +4,13 @@ A refreshingly technology independent view of Big Data.
 
 In this seventh installment we sort out exactly how authentication and
 authorization will work in our Big Data system.  First a simple use case,
-followed by analysis, design and implementation.  We're trying to keep
+followed by analysis, design and implementation.
+
+We're trying to keep
 authorization completely orthogonal to
 the message key scheme, while presenting a domain specific authorization model.
+
+User registration and login work flows are stubbed out for this iteration.
 
 ##Auth Use Case
 
@@ -59,8 +63,8 @@ immediately.  Upon registering through email address verification & password
 creation, the user gains Modify & Delete permissions on their messages only.
 
 When an existing email address is used the system first checks if the user is
-registered or not.  If the user is registered, password authentication is
-required before the system grants Create, Modify or Delete privileges.
+registered or not.  If the user is registered, the system grants Create, Modify
+or Delete privileges.
 
 Context owners may modify or delete any messages within their context.
 
@@ -84,11 +88,8 @@ authorize message actions:
  granted.
 
 The trick is to not require too many document lookups while getting the job
-done.  The key for the owner record may be <authentication>/<message-uuid>, with
-the contents a simple boolean telling if the user is registered or not.  This
-should require only one additional document lookup per-private message action.
-We'll get a chance to see how this plays out in performance benchmarking at the
-end of this chapter.
+done.  We'll get a chance to see how auth plays out in performance benchmarking
+at the end of this chapter.
 
 ##User Records
 
@@ -240,19 +241,6 @@ as a method on `Bd`.
 
         this.userRoadie.register( authentication);
     }
-```
-
-And a route + controller method to tie into the runtime:
-
-```
-PUT         /user/:authentication   controllers.Application.register( authentication:String)
-```
-
-```
-  def register(authentication: String) = Action{
-    bd.register( authentication)
-    Ok( "User registration complete.")
-  }
 ```
 
 Very soon registration will be tied into an email request containing a strongly
