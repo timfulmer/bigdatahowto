@@ -14,11 +14,11 @@ class IntegrationSpec extends Specification {
 
   "Application" should {
 
-    "work from within a browser" in new WithBrowser {
+    "only support service calls" in new WithBrowser {
 
       browser.goTo("http://localhost:" + port)
 
-      browser.pageSource must contain("Your new application is ready.")
+      browser.pageSource must contain("Operation not supported.")
     }
   }
 }

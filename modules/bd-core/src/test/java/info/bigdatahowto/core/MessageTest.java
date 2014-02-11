@@ -17,35 +17,37 @@ public class MessageTest {
     public void testMessage(){
 
         Map<String,String> values= new HashMap<>();
-        Map<String,String> behavior= new HashMap<>();
+        Map<BehaviorType,Behavior> behaviorMap= new HashMap<>();
         Map<String,String> options= new HashMap<>();
         Message message= new Message(
-                TestUtils.MESSAGE_KEY, values, behavior, options);
+                TestUtils.MESSAGE_KEY, values, behaviorMap, options);
 
         this.assertMessage(new MessageKey( TestUtils.MESSAGE_KEY), values,
-                behavior, options, message);
+                behaviorMap, options, message);
 
         // tf - Test mutation while we're here.
         MessageKey messageKey= new MessageKey();
         message.setMessageKey(messageKey);
         message.setValues(values);
-        behavior.put( "test-key", "test-value");
-        message.setBehavior( behavior);
+        Behavior behavior= new Behavior(BehaviorType.Persist, "test-value");
+        behaviorMap.put(behavior.getBehaviorType(), behavior);
+        message.setBehavior( behaviorMap);
         message.setOptions( options);
 
-        this.assertMessage(messageKey, values, behavior, options, message);
+        this.assertMessage(messageKey, values, behaviorMap, options, message);
     }
 
     @Test
     public void testResourceKey(){
 
         Message message= fakeMessage();
-        assert TestUtils.MESSAGE_USER_KEY.equals( message.resourceKey()):
+        assert String.format( "messages/%s",
+                TestUtils.MESSAGE_USER_KEY).equals(message.resourceKey()):
                 "Message.resourceKey is implemented incorrectly.";
     }
 
     private void assertMessage(
-            MessageKey messageKey, Map<String, String> values, Map<String, String> behavior,
+            MessageKey messageKey, Map<String, String> values, Map<BehaviorType, Behavior> behavior,
             Map<String, String> options, Message message) {
 
         assert message.getMessageKey()!= null && messageKey.equals(

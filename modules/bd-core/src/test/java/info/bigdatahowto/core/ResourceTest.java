@@ -34,6 +34,11 @@ public class ResourceTest {
             public String read(String key) {
                 return hackery.get(key);
             }
+
+            @Override
+            public boolean remove(String key) {
+                return true;
+            }
         };
     }
 
@@ -91,6 +96,11 @@ public class ResourceTest {
             public void write(String key, String value) {
                 throw new RuntimeException();
             }
+
+            @Override
+            public boolean remove(String key) {
+                return true;
+            }
         };
         this.resource.put(aggregateRoot);
     }
@@ -103,6 +113,11 @@ public class ResourceTest {
             public void write(String key, String value) {
                 // Noop.
             }
+
+            @Override
+            public boolean remove(String key) {
+                return true;
+            }
         };
         this.resource.read("test-key");
     }
@@ -112,8 +127,7 @@ public class ResourceTest {
 
         Message message= fakeMessage();
         this.resource.put( message);
-        Message result= this.resource.get( message.resourceKey(),
-                Message.class);
+        Message result= this.resource.get( message);
         assert message.equals( result):
                 "Resource.get is not calling Resource.read correctly.";
     }

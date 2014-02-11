@@ -16,7 +16,10 @@ public class TestUtils {
 
     static Message fakeMessage() {
 
-        return new Message(MESSAGE_KEY);
+        Message message= new Message(MESSAGE_KEY);
+        message.setContextOwner( MESSAGE_USER_CONTEXT_KEY);
+
+        return message;
     }
 
     static Job fakeJob(){
@@ -33,6 +36,7 @@ public class TestUtils {
 
     static Job fakeJob(Message message, String authentication){
 
-        return new Job( message, authentication);
+        return new Job( message, BehaviorType.Persist, authentication,
+                message.getContextOwner());
     }
 }

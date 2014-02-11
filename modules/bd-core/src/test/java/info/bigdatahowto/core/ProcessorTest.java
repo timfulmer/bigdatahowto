@@ -15,7 +15,7 @@ import static org.mockito.Mockito.*;
  */
 public class ProcessorTest {
 
-    private final ProcessingResult processingResult=
+    private final ProcessingResult processingResultMock=
             mock( ProcessingResult.class);
 
     private Queue queueMock;
@@ -30,13 +30,14 @@ public class ProcessorTest {
 
         this.processor= new Processor(this.queueMock, this.resourceRoadieMock) {
             @Override
-            protected ProcessingResult process(Message message) {
-                return processingResult;
+            protected ProcessingResult process(Message message,
+                                               BehaviorType behaviorType) {
+                return processingResultMock;
             }
 
             @Override
             protected ProcessingResult error(Message message, int tries) {
-                return processingResult;
+                return processingResultMock;
             }
         };
     }
@@ -50,23 +51,27 @@ public class ProcessorTest {
         Message message= fakeMessage();
         Behavior behavior= new Behavior( BehaviorType.Persist, "test-value");
         message.getBehavior().put(behavior.getBehaviorType(), behavior);
-        when(this.resourceRoadieMock.accessMessage(job.getMessageKey(),
-                job.getAuthentication())).thenReturn(message);
-        when(this.processingResult.isContinueProcessing()).thenReturn( true);
-        when(this.processingResult.getMessage()).thenReturn(message);
+        when(this.resourceRoadieMock.accessMessage(
+                any( Message.class),
+                eq(job.getJobOwner()),
+                eq(BehaviorType.Persist)
+        )).thenReturn(message);
+        when(this.processingResultMock.isContinueProcessing()).thenReturn(true);
+        when(this.processingResultMock.getMessage()).thenReturn(message);
         List<ProcessingResult.NewMessage> messages= new ArrayList<>(1);
         ProcessingResult pr= new ProcessingResult();
-        pr.setMessage( message);
+        pr.setMessage(message);
         messages.add(pr.new NewMessage(message.getMessageKey().getUserKey(),
                 behavior, null));
-        when(this.processingResult.getMessages()).thenReturn(messages);
-        when(this.resourceRoadieMock.storeMessage(message.getMessageKey(),
-                message.getBehavior().get( BehaviorType.Persist),
-                job.getAuthentication())).thenReturn( message);
+        when(this.processingResultMock.getMessages()).thenReturn(messages);
+        when(this.resourceRoadieMock.storeMessage(any(Message.class),
+                eq(message.getBehavior().get(BehaviorType.Persist)),
+                eq(job.getJobOwner())
+        )).thenReturn( message);
 
         this.processor.pullJob();
 
-        verify(this.queueMock).push(message, job.getAuthentication());
+        verify(this.queueMock).push(message, BehaviorType.Persist, job.getJobOwner());
     }
 
     @Test
@@ -81,11 +86,11 @@ public class ProcessorTest {
         Job job= fakeJob();
         when(this.queueMock.pop()).thenReturn( job);
 
-        when(this.resourceRoadieMock.accessMessage(job.getMessageKey(),
-                job.getAuthentication())).thenReturn( null);
-          this.processor.pullJob();
-
-        verify(this.queueMock).error(eq(job), anyString());
+        when(this.resourceRoadieMock.accessMessage(
+                new Message( job.getMessageKey()), job.getJobOwner(),
+                BehaviorType.Persist
+        )).thenReturn( null);
+        this.processor.pullJob();
     }
 
     @Test
@@ -95,9 +100,11 @@ public class ProcessorTest {
         when(this.queueMock.pop()).thenReturn( job);
 
         Message message= fakeMessage();
-        when(this.resourceRoadieMock.accessMessage(job.getMessageKey(),
-                job.getAuthentication())).thenReturn(message);
-        when(this.processingResult.getMessage()).thenReturn(message);
+        when(this.resourceRoadieMock.accessMessage(
+                new Message( job.getMessageKey()), job.getJobOwner(),
+                BehaviorType.Persist
+        )).thenReturn(message);
+        when(this.processingResultMock.getMessage()).thenReturn(message);
 
         this.processor.pullJob();
     }
@@ -113,36 +120,42 @@ public class ProcessorTest {
         Behavior error= new Behavior( BehaviorType.Error, "test-error");
         message.getBehavior().put(persist.getBehaviorType(), persist);
         message.getBehavior().put( error.getBehaviorType(), error);
-        when(this.resourceRoadieMock.accessMessage(job.getMessageKey(),
-                job.getAuthentication())).thenReturn(message);
-        when(this.processingResult.isContinueProcessing()).thenReturn( true);
-        when(this.processingResult.getMessage()).thenReturn(message);
+        when(this.resourceRoadieMock.accessMessage(
+                any( Message.class),
+                eq(job.getJobOwner()),
+                eq(BehaviorType.Persist)
+        )).thenReturn(message);
+        when(this.processingResultMock.isContinueProcessing()).thenReturn(true);
+        when(this.processingResultMock.getMessage()).thenReturn(message);
         List<ProcessingResult.NewMessage> messages= new ArrayList<>(1);
         ProcessingResult pr= new ProcessingResult();
-        pr.setMessage( message);
+        pr.setMessage(message);
         messages.add(pr.new NewMessage(message.getMessageKey().getUserKey(),
                 persist, null));
-        when(this.processingResult.getMessages()).thenReturn(messages);
-        when(this.resourceRoadieMock.storeMessage(message.getMessageKey(),
-                message.getBehavior().get( BehaviorType.Persist),
-                job.getAuthentication())).thenReturn( message);
+        when(this.processingResultMock.getMessages()).thenReturn(messages);
+        when(this.resourceRoadieMock.storeMessage(
+                any( Message.class),
+                eq( message.getBehavior().get( BehaviorType.Persist)),
+                eq(job.getJobOwner())
+        )).thenReturn(message);
 
         this.processor= new Processor(this.queueMock, this.resourceRoadieMock) {
             @Override
-            protected ProcessingResult process(Message message) {
+            protected ProcessingResult process(Message message,
+                                               BehaviorType behaviorType) {
                 throw new RuntimeException();
             }
 
             @Override
             protected ProcessingResult error(Message message, int tries) {
-                return processingResult;
+                return processingResultMock;
             }
         };
         this.processor.setQueue( this.queueMock);
         this.processor.setResourceRoadie( this.resourceRoadieMock);
         this.processor.pullJob();
 
-        verify(this.queueMock).push(message, job.getAuthentication());
+        verify(this.queueMock).push(message, BehaviorType.Persist, job.getJobOwner());
     }
 
     @Test
@@ -154,29 +167,28 @@ public class ProcessorTest {
         Message message= fakeMessage();
         Behavior behavior= new Behavior( BehaviorType.Persist, "test-value");
         message.getBehavior().put(behavior.getBehaviorType(), behavior);
-        when(this.resourceRoadieMock.accessMessage(job.getMessageKey(),
-                job.getAuthentication())).thenReturn(message);
-        when(this.processingResult.isContinueProcessing()).thenReturn( true);
-        when(this.processingResult.getMessage()).thenReturn(message);
+        when(this.resourceRoadieMock.accessMessage(any(Message.class),
+                anyString(), any(BehaviorType.class))).thenReturn(message);
+        when(this.processingResultMock.isContinueProcessing()).thenReturn(true);
+        when(this.processingResultMock.getMessage()).thenReturn(message);
         List<ProcessingResult.NewMessage> messages= new ArrayList<>(1);
         ProcessingResult pr= new ProcessingResult();
-        pr.setMessage( message);
+        pr.setMessage(message);
         messages.add(pr.new NewMessage("", behavior, null));
-        when(this.processingResult.getMessages()).thenReturn(messages);
+        when(this.processingResultMock.getMessages()).thenReturn(messages);
 
         this.processor= new Processor(this.queueMock, this.resourceRoadieMock) {
             @Override
-            protected ProcessingResult process(Message message) {
+            protected ProcessingResult process(Message message,
+                                               BehaviorType behaviorType) {
                 throw new RuntimeException();
             }
 
             @Override
             protected ProcessingResult error(Message message, int tries) {
-                return processingResult;
+                return processingResultMock;
             }
         };
-        this.processor.setQueue( this.queueMock);
-        this.processor.setResourceRoadie( this.resourceRoadieMock);
         this.processor.pullJob();
     }
 
@@ -190,18 +202,22 @@ public class ProcessorTest {
         Message message= fakeMessage();
         Behavior behavior= new Behavior( BehaviorType.Persist, "test-value");
         message.getBehavior().put(behavior.getBehaviorType(), behavior);
-        when(this.resourceRoadieMock.accessMessage(job.getMessageKey(),
-                job.getAuthentication())).thenReturn(message);
-        when(this.processingResult.getMessage()).thenReturn(message);
+        when(this.resourceRoadieMock.accessMessage(
+                any( Message.class),
+                eq( job.getJobOwner()),
+                eq(BehaviorType.Persist)
+        )).thenReturn(message);
+        when(this.processingResultMock.getMessage()).thenReturn(message);
         List<ProcessingResult.NewMessage> messages= new ArrayList<>(1);
         ProcessingResult pr= new ProcessingResult();
         pr.setMessage( message);
         messages.add(pr.new NewMessage("", behavior, null));
-        when(this.processingResult.getMessages()).thenReturn(messages);
+        when(this.processingResultMock.getMessages()).thenReturn(messages);
 
         this.processor= new Processor(this.queueMock, this.resourceRoadieMock) {
             @Override
-            protected ProcessingResult process(Message message) {
+            protected ProcessingResult process(Message message,
+                                               BehaviorType behaviorType) {
                 throw new RuntimeException();
             }
 
@@ -226,12 +242,14 @@ public class ProcessorTest {
         Message message= fakeMessage();
         Behavior behavior= new Behavior( BehaviorType.Persist, "test-value");
         message.getBehavior().put(behavior.getBehaviorType(), behavior);
-        when(this.resourceRoadieMock.accessMessage(job.getMessageKey(),
-                job.getAuthentication())).thenReturn(message);
+        when(this.resourceRoadieMock.accessMessage(message,
+                job.getJobOwner(), BehaviorType.Persist
+        )).thenReturn(message);
 
         this.processor= new Processor(this.queueMock, this.resourceRoadieMock) {
             @Override
-            protected ProcessingResult process(Message message) {
+            protected ProcessingResult process(Message message,
+                                               BehaviorType behaviorType) {
                 return null;
             }
 
@@ -254,9 +272,10 @@ public class ProcessorTest {
         Message message= fakeMessage();
         Behavior behavior= new Behavior( BehaviorType.Persist, "test-value");
         message.getBehavior().put(behavior.getBehaviorType(), behavior);
-        when(this.resourceRoadieMock.accessMessage(job.getMessageKey(),
-                job.getAuthentication())).thenReturn(message);
-        when(this.processingResult.isContinueProcessing()).thenReturn( false);
+        when(this.resourceRoadieMock.accessMessage(message,
+                job.getJobOwner(), BehaviorType.Persist
+        )).thenReturn(message);
+        when(this.processingResultMock.isContinueProcessing()).thenReturn(false);
 
         this.processor.pullJob();
     }
@@ -270,10 +289,11 @@ public class ProcessorTest {
         Message message= fakeMessage();
         Behavior behavior= new Behavior( BehaviorType.Persist, "test-value");
         message.getBehavior().put(behavior.getBehaviorType(), behavior);
-        when(this.resourceRoadieMock.accessMessage(job.getMessageKey(),
-                job.getAuthentication())).thenReturn(message);
-        when(this.processingResult.getMessage()).thenReturn(null);
-        when(this.processingResult.getMessages()).thenReturn(null);
+        when(this.resourceRoadieMock.accessMessage(message,
+                job.getJobOwner(), BehaviorType.Persist
+        )).thenReturn(message);
+        when(this.processingResultMock.getMessage()).thenReturn(null);
+        when(this.processingResultMock.getMessages()).thenReturn(null);
 
         this.processor.pullJob();
     }

@@ -22,7 +22,7 @@ public class JobTest {
 
         assert message.getMessageKey().equals(job.getMessageKey()):
                 "Job.messageKey is not initialized correctly.";
-        assert authentication.equals( job.getAuthentication()):
+        assert authentication.equals( job.getJobOwner()):
                 "Job.authentication is not initialized correctly.";
         assert job.getTries()== 0:
                 "Job.tries is not initialized correctly.";
@@ -35,7 +35,7 @@ public class JobTest {
         MessageKey messageKey= new MessageKey();
         job.setMessageKey(messageKey);
         String mutatedAuthentication= "mutated-authentication";
-        job.setAuthentication( mutatedAuthentication);
+        job.setJobOwner(mutatedAuthentication);
         Integer tries= 0;
         job.setTries( tries);
         job.setState( JobState.Complete);
@@ -44,8 +44,8 @@ public class JobTest {
         assert !message.getMessageKey().equals(job.getMessageKey())
                 && messageKey.equals( job.getMessageKey()):
                 "Job.messageKey is not set correctly.";
-        assert !authentication.equals( job.getAuthentication())
-                && mutatedAuthentication.equals( job.getAuthentication()):
+        assert !authentication.equals( job.getJobOwner())
+                && mutatedAuthentication.equals( job.getJobOwner()):
                 "Job.authentication is not set correctly.";
         assert tries.equals(job.getTries()):
                 "Job.tries is not set correctly.";
@@ -133,7 +133,8 @@ public class JobTest {
     public void testResourceKey(){
 
         Job job= fakeJob( fakeMessage());
-        assert job.getUuid().toString().equals( job.resourceKey()):
+        assert String.format("jobs/%s", job.getUuid().toString()).equals(
+                job.resourceKey()):
                 "Job.resourceKey is not implemented correctly.";
     }
 

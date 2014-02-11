@@ -14,6 +14,8 @@ public class AuthenticatorTest {
 
         Authenticator authenticator= mock( Authenticator.class);
 
-        authenticator.authorize( "test-key", "test-authorization");
+        authenticator.authorize( new Message(), "test-authentication",
+                BehaviorType.Persist);
+        authenticator.provision( new Message(), "test-authentication");
     }
 }

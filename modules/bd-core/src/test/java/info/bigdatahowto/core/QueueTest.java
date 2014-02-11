@@ -49,13 +49,12 @@ public class QueueTest {
 
         Message message= fakeMessage();
         String authentication= "test-authentication";
-        this.queue.push( message, authentication);
+        this.queue.push( message, BehaviorType.Persist, authentication);
 
         Job job= fakeJob();
         job.setUuid( popUuid());
         job.setState(JobState.Queued);
-        when(this.resourceMock.get( popUuid().toString(), Job.class)
-                ).thenReturn( job);
+        when(this.resourceMock.get( job)).thenReturn( job);
         Job result= this.queue.pop();
         assert result.getUuid().equals(job.getUuid()):
                 "Queue.push is not writing job correctly.";
@@ -68,7 +67,7 @@ public class QueueTest {
         assert JobState.Error== job.getState():
                 "Queue.error is not updating job state correctly.";
 
-        verify( this.resourceMock, times(2)).put(job);
+        verify( this.resourceMock, times(4)).put(job);
     }
 
     @Test

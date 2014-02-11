@@ -39,12 +39,13 @@ public class JavaScriptProcessor extends Processor {
      * @return Results of processing.
      */
     @Override
-    protected ProcessingResult process(Message message) {
+    protected ProcessingResult process(Message message,
+                                       BehaviorType behaviorType) {
 
         String script = composeScript(message,
                 this.javaScriptProcessorTemplate.processWithMeta(),
                 this.javaScriptProcessorTemplate.processWithoutMeta(),
-                message.getBehavior().get( BehaviorType.Persist).getFunction());
+                message.getBehavior().get( behaviorType).getFunction());
         Bindings bindings= new SimpleBindings();
 
         return getProcessingResult(message, script, bindings);

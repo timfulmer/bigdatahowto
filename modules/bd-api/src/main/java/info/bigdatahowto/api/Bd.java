@@ -17,6 +17,7 @@ import static org.apache.commons.collections.MapUtils.isEmpty;
  */
 public class Bd {
 
+    private UserRoadie userRoadie;
     private ResourceRoadie resourceRoadie;
     private Queue queue;
     private Processor processor;
@@ -31,38 +32,61 @@ public class Bd {
         super();
 
         Resource resource= new FileResource( directory);
-        Queue queue= new InMemoryQueue(resource);
-        this.setQueue(queue);
-        ResourceRoadie resourceRoadie= new ResourceRoadie(
-                new AlwaysAllowAuthenticator());
-        resourceRoadie.addResource( resource);
-        this.setResourceRoadie(resourceRoadie);
-        this.setProcessor(new JavaScriptProcessor(queue, resourceRoadie));
+        this.setUserRoadie( new UserRoadie( resource));
+        this.setQueue( new InMemoryQueue(resource));
+        this.setResourceRoadie( new ResourceRoadie(
+                new AlwaysAllowAuthenticator()));
+        this.getResourceRoadie().addResource(resource);
+        this.setProcessor( new JavaScriptProcessor(this.getQueue(),
+                this.getResourceRoadie()));
     }
 
     public UUID addMessage( String key, String behaviorString,
-                            String behaviorType,
-                            String authentication){
+                            String behaviorType, String authentication){
 
-        MessageKey messageKey= new MessageKey( key);
-        Behavior behavior= new Behavior( BehaviorType.valueOf( behaviorType),
-                behaviorString);
-        Message message= this.resourceRoadie.storeMessage( messageKey,
-                behavior, authentication);
-
-        return this.queue.push( message, authentication);
+        return this.addMessage( key, behaviorString, behaviorType,
+                authentication, false);
     }
 
-    public Job queryJob( UUID uuid){
+    public UUID addMessage( String key, String behaviorString,
+                            String behaviorTypeString, String authentication,
+                            boolean secure){
 
-        return this.queue.getJob( uuid);
+        MessageKey messageKey= new MessageKey( key);
+        BehaviorType behaviorType= BehaviorType.valueOf( behaviorTypeString);
+        Behavior behavior= new Behavior( behaviorType,
+                behaviorString);
+        Message message= new Message( messageKey);
+        message.setSecure( secure);
+        message= this.resourceRoadie.storeMessage( message, behavior,
+                authentication);
+
+        return this.queue.push( message, behaviorType, authentication);
+    }
+
+    public Job queryJob( UUID uuid, String authentication){
+
+        assert authentication!= null:
+                "Cannot query job without authentication.";
+
+        Job job= this.queue.getJob( uuid);
+        if( job== null || authentication.equals( job.getJobOwner())
+                || authentication.equals( job.getContextOwner())){
+
+            return job;
+        }
+
+        return null;
     }
 
     public Object queryMetaData( String key, String name,
                                  String authentication){
 
+        assert key!= null: "No key to query.";
+        assert name!= null: "No name to query.";
+
         Message message= this.resourceRoadie.accessMessage(
-                new MessageKey( key), authentication);
+                new Message( key), authentication, BehaviorType.Get);
         if( message== null || isEmpty(message.getValues())){
 
             return null;
@@ -76,15 +100,44 @@ public class Bd {
         this.processor.pullJob();
     }
 
+    public void register( String authentication, String userContext){
+
+        this.userRoadie.register( authentication, userContext);
+    }
+
+    public UserRoadie getUserRoadie() {
+        return userRoadie;
+    }
+
+    public void setUserRoadie(UserRoadie userRoadie) {
+        this.userRoadie = userRoadie;
+    }
+
+    public ResourceRoadie getResourceRoadie() {
+        return resourceRoadie;
+    }
+
     public void setResourceRoadie(ResourceRoadie resourceRoadie) {
         this.resourceRoadie = resourceRoadie;
+    }
+
+    public Queue getQueue() {
+        return queue;
     }
 
     public void setQueue(Queue queue) {
         this.queue = queue;
     }
 
+    public Processor getProcessor() {
+        return processor;
+    }
+
     public void setProcessor(Processor processor) {
         this.processor = processor;
+    }
+
+    public void setAuthenticator( Authenticator authenticator){
+         this.resourceRoadie.setAuthenticator( authenticator);
     }
 }

@@ -93,6 +93,19 @@ public class FileResource extends Resource {
         }
     }
 
+    /**
+     * Remove information from the external resource.
+     *
+     * @param key Identifies data within the external system.
+     */
+    @Override
+    public boolean remove(String key) {
+
+        File file= this.getFile( key);
+
+        return file.delete();
+    }
+
     private File getDirectory(){
 
         if( this.directory== null){

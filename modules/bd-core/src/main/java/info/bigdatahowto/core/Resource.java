@@ -62,6 +62,13 @@ public abstract class Resource {
     }
 
     /**
+     * Remove information from the external resource.
+     *
+     * @param key Identifies data within the external system.
+     */
+    public abstract boolean remove( String key);
+
+    /**
      * Helper method to put an instance to an external resource.
      *
      * @param aggregateRoot Aggregate root to put.
@@ -78,30 +85,58 @@ public abstract class Resource {
 
             String msg= String.format(
                     "Could not serialize class '%s' with state '%s' into JSON.",
-                    this.getClass().getName(), this.toString());
+                    aggregateRoot.getClass().getName(),
+                    aggregateRoot.toString());
             this.logger.log(Level.SEVERE, msg, e);
 
             throw new RuntimeException( msg, e);
         }
     }
 
-    public <T extends AggregateRoot> T get( String resourceKey, Class<T> clazz){
+    /**
+     * Accesses an instance from the external resource.
+     *
+     * @param aggregateRoot Contains resource key information.
+     * @param <T> Return type, same as argument type.
+     * @return Instance from external resource.
+     */
+    @SuppressWarnings("unchecked")
+    public <T extends AggregateRoot> T get( AggregateRoot aggregateRoot){
 
-        String json= this.read( resourceKey);
+        String json= this.read(aggregateRoot.resourceKey());
         if( json== null){
 
             return null;
         }
         try {
 
-            return this.objectMapper.readValue( json, clazz);
+            return (T) this.objectMapper.readValue( json,
+                    aggregateRoot.getClass());
         } catch (IOException e) {
 
             String msg= String.format( "Could not deserialize '%s' into " +
-                    "class '%s'.", json, clazz.getName());
+                    "class '%s'.", json, aggregateRoot.getClass().getName());
             this.logger.log( Level.SEVERE, msg, e);
 
             throw new RuntimeException( msg, e);
         }
+    }
+
+    /**
+     * Delete a message from external resource.
+     *
+     * @param aggregateRoot Aggregate root to delete.
+     */
+    public <T extends AggregateRoot> T delete(AggregateRoot aggregateRoot) {
+
+        T deleted= this.get( aggregateRoot);
+        if( !this.remove( aggregateRoot.resourceKey())){
+
+            throw new IllegalStateException( String.format(
+                    "Could not delete resource '%s'.",
+                    aggregateRoot.toString()));
+        }
+
+        return deleted;
     }
 }

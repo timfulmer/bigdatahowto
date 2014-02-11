@@ -46,15 +46,9 @@ public abstract class Processor {
 
         // tf - Access current state of message.
         MessageKey messageKey= job.getMessageKey();
-        Message message= this.resourceRoadie.accessMessage( messageKey,
-                job.getAuthentication());
-        if( message== null){
-
-            String msg= String.format( "No message for key '%s' found; " +
-                    "please check the key and security settings and try again.",
-                    messageKey.getKey());
-            this.queue.error( job, msg);
-        }
+        Message message= this.resourceRoadie.accessMessage(
+                new Message( messageKey), job.getJobOwner(),
+                job.getBehaviorType());
         if( message== null || !message.hasBehavior()){
 
             return;
@@ -62,7 +56,7 @@ public abstract class Processor {
         ProcessingResult processingResult= null;
         try{
 
-            processingResult= this.process( message);
+            processingResult= this.process( message, job.getBehaviorType());
         }catch( Throwable t){
 
             if( job.getTries()< this.maximumTries){
@@ -101,7 +95,10 @@ public abstract class Processor {
 
             return;
         }
-        if( processingResult.getMessage()!= null){
+        if( job.getBehaviorType()== BehaviorType.Delete){
+
+            this.resourceRoadie.deleteMessage(message);
+        }else if( processingResult.getMessage()!= null){
 
             // tf - Do not need an authentication here since we're updating a
             //  message already authenticated above.
@@ -113,9 +110,10 @@ public abstract class Processor {
                     processingResult.getMessages()){
 
                 Message m= this.resourceRoadie.storeMessage(
-                        newMessage.makeKey(), newMessage.behavior,
-                        job.getAuthentication());
-                this.queue.push( m, job.getAuthentication());
+                        new Message( newMessage.makeKey()), newMessage.behavior,
+                        job.getJobOwner());
+                this.queue.push( m, newMessage.behavior.getBehaviorType(),
+                        job.getJobOwner());
             }
         }
 
@@ -126,9 +124,11 @@ public abstract class Processor {
      * Applies behavior to data defined in a message.
      *
      * @param message Message containing behavior and data.
+     * @param behaviorType Behavior to execute.
      * @return Results of processing.
      */
-    protected abstract ProcessingResult process( Message message);
+    protected abstract ProcessingResult process( Message message,
+                                                 BehaviorType behaviorType);
 
     /**
      * Applies error handling to data defined in a message.  This method is

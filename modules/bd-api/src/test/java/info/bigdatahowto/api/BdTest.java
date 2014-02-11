@@ -66,7 +66,7 @@ public class BdTest {
         assert jobUuid!= null:
                 "Bd.addMessage is not implemented correctly.";
 
-        Job job= this.bd.queryJob( jobUuid);
+        Job job= this.bd.queryJob( jobUuid, authentication);
         assert job!= null:
                 "Bd.queryJob is not implemented correctly.";
         assert jobUuid.equals(job.getUuid()):
@@ -87,7 +87,7 @@ public class BdTest {
 
         this.bd.processJob();
 
-        job= this.bd.queryJob( jobUuid);
+        job= this.bd.queryJob( jobUuid, authentication);
         assert JobState.Complete== job.getState():
                 "Job processing incorrect.";
         assert 1== job.getTries():
@@ -107,12 +107,24 @@ public class BdTest {
             object= this.bd.queryMetaData( key, "count", authentication);
             this.assertCount(object);
         }
+
+        this.bd.addMessage( key, BEHAVIOR, BehaviorType.Delete.toString(),
+                authentication);
+        this.bd.processJob();
+        object= this.bd.queryMetaData( key, "count", authentication);
+        assert object== null:
+                "BehaviorType.Delete is not implemented correctly.";
     }
 
     @Test
     public void testPollJob(){
 
         this.bd.processJob();
+    }
+    @Test
+    public void testQueryJob(){
+
+        this.bd.queryJob( UUID.randomUUID(), "test-authentication");
     }
 
     @Test

@@ -1,5 +1,8 @@
 package info.bigdatahowto.core;
 
+import com.fasterxml.jackson.annotation.JsonIgnore;
+import com.fasterxml.jackson.annotation.JsonProperty;
+
 import java.util.HashMap;
 import java.util.Map;
 
@@ -19,7 +22,7 @@ public class Message extends AggregateRoot {
     private MessageKey messageKey;
 
     /**
-     * Value, containing JSON data.
+     * Map of meta data.
      */
     private Map values= new HashMap();
 
@@ -33,6 +36,21 @@ public class Message extends AggregateRoot {
      */
     private Map<String,String> options= new HashMap<>();
 
+    /**
+     * Is authorization required before reading this message.
+     */
+    private Boolean secure= false;
+
+    /**
+     * An authentication string identifying this message's context owner.
+     */
+    private String contextOwner;
+
+    /**
+     * An authentication string identifying this message's owner.
+     */
+    private String messageOwner;
+
     public Message() {
 
         super();
@@ -40,7 +58,7 @@ public class Message extends AggregateRoot {
 
     public Message( String key){
 
-        this(key, null, new HashMap<BehaviorType,Behavior>(0),
+        this(key, null, new HashMap<BehaviorType, Behavior>(0),
                 new HashMap<String, String>(0));
     }
 
@@ -55,6 +73,13 @@ public class Message extends AggregateRoot {
         this.setOptions(options);
     }
 
+    public Message(MessageKey messageKey) {
+
+        this();
+
+        this.setMessageKey( messageKey);
+    }
+
     public MessageKey getMessageKey() {
         return messageKey;
     }
@@ -63,7 +88,6 @@ public class Message extends AggregateRoot {
         this.messageKey = messageKey;
     }
 
-    // TODO: Test me & figure out serialization.
     public String getKey(){
 
         return this.messageKey.getKey();
@@ -103,9 +127,41 @@ public class Message extends AggregateRoot {
         this.options = options;
     }
 
+    @JsonProperty
+    public Boolean getSecure() {
+        return secure;
+    }
+
+    public void setSecure(Boolean secure) {
+        this.secure = secure;
+    }
+
+    @JsonIgnore
+    public boolean isSecure(){
+
+        return this.getSecure()!= null && this.getSecure();
+    }
+
+    public String getContextOwner() {
+        return contextOwner;
+    }
+
+    public void setContextOwner(String contextOwner) {
+        this.contextOwner = contextOwner;
+    }
+
+    public String getMessageOwner() {
+        return messageOwner;
+    }
+
+    public void setMessageOwner(String messageOwner) {
+        this.messageOwner = messageOwner;
+    }
+
     @Override
     public String resourceKey() {
-        return this.getMessageKey().getAggregateRootKey();
+        return String.format( "messages/%s",
+                this.getMessageKey().getAggregateRootKey());
     }
 
     @Override
@@ -115,34 +171,9 @@ public class Message extends AggregateRoot {
                 ", values=" + values +
                 ", behavior=" + behavior +
                 ", options=" + options +
+                ", secure=" + secure +
+                ", contextOwner='" + contextOwner + '\'' +
+                ", messageOwner='" + messageOwner + '\'' +
                 "} " + super.toString();
-    }
-
-    @Override
-    public boolean equals(Object o) {
-        if (this == o) return true;
-        if (o == null || getClass() != o.getClass()) return false;
-
-        Message message = (Message) o;
-
-        if (behavior != null ? !behavior.equals(message.behavior) : message.behavior != null)
-            return false;
-        if (messageKey != null ? !messageKey.equals(message.messageKey) : message.messageKey != null)
-            return false;
-        if (options != null ? !options.equals(message.options) : message.options != null)
-            return false;
-        if (values != null ? !values.equals(message.values) : message.values != null)
-            return false;
-
-        return true;
-    }
-
-    @Override
-    public int hashCode() {
-        int result = messageKey != null ? messageKey.hashCode() : 0;
-        result = 31 * result + (values != null ? values.hashCode() : 0);
-        result = 31 * result + (behavior != null ? behavior.hashCode() : 0);
-        result = 31 * result + (options != null ? options.hashCode() : 0);
-        return result;
     }
 }

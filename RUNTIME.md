@@ -5,7 +5,7 @@ A refreshingly technology independent view of Big Data.
 In this sixth installment we wrap our bd-api implementation into a Play runtime
 environment.  This lets us start interfacing with the outside world using JSON
 services.  We'll finish up this iteration with a simple stress-test using Apache
-Base.
+Bench.
 
 ##Play Runtime
 
@@ -234,5 +234,5 @@ Total:          1    2   0.9      2      13
 
 And we have our baselines for initial system performance.  We're not exploring
 concurrency here, since the defaults we've built up so far do not support it.
-Before doing that, it might be time to drill down on authentication and
-authorization.
+Before building upon our defaults, it might be time to drill down on
+authentication and authorization.

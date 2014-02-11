@@ -31,15 +31,12 @@ public class ResourceRoadieTest {
     public void testResourceRoadie(){
 
         String authentication= "test-authentication";
-        when(this.authenticatorMock.authorize( TestUtils.MESSAGE_KEY,
-                authentication)).thenReturn( true);
         Message message= fakeMessage();
-        when(this.resourceMock.get(TestUtils.MESSAGE_USER_KEY, Message.class)
-                ).thenReturn( message);
-
+        when(this.resourceMock.get(message)).thenReturn( message);
+        when(this.authenticatorMock.authorize( message, authentication,
+                BehaviorType.Persist)).thenReturn(true);
         Message result= this.resourceRoadie.accessMessage(
-                message.getMessageKey(), authentication);
-
+                message, authentication, BehaviorType.Persist);
         assert result!= null && result.equals( message):
                 "ResourceRoadie.accessMessage is not implemented correctly.";
 
@@ -48,20 +45,20 @@ public class ResourceRoadieTest {
         this.resourceRoadie.storeMessage( message);
 
         verify( this.resourceMock, times(2)).put(message);
-        verify( this.authenticatorMock).authorize(
-                TestUtils.MESSAGE_KEY, authentication);
+        verify( this.authenticatorMock).authorize( message, authentication,
+                BehaviorType.Persist);
     }
 
     @Test
     public void testUnauthorized(){
 
         String authentication= "test-authentication";
-        when(this.authenticatorMock.authorize( TestUtils.MESSAGE_KEY,
-                authentication)).thenReturn( false);
-
         Message message= fakeMessage();
+        when(this.authenticatorMock.authorize( message, authentication,
+                BehaviorType.Persist)).thenReturn(false);
+
         Message result= this.resourceRoadie.accessMessage(
-                message.getMessageKey(), authentication);
+                message, authentication, BehaviorType.Persist);
 
         assert result== null:
                 "ResourceRoadie.accessMessage is not authenticating correctly.";

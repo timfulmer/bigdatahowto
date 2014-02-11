@@ -24,17 +24,26 @@ public class ResourceRoadie {
         this.setAuthenticator( authenticator);
     }
 
-    public Message accessMessage( MessageKey messageKey, String authentication){
+    public Message accessMessage( Message message, String authentication,
+                                  BehaviorType behaviorType){
 
-        if( !this.authenticator.authorize( messageKey.getKey(),
-                authentication)){
+        Resource resource= this.resources.get(
+                message.getMessageKey().getResourceName());
+        message= resource.get(message);
+        if( message== null){
 
             return null;
         }
+        if( !this.authenticator.authorize( message, authentication,
+                behaviorType)){
 
-        Resource resource= this.resources.get( messageKey.getResourceName());
+            throw new IllegalAccessError( String.format(
+                    "Authentication '%s' does not have '%s' access to " +
+                            "message with key '%s'", authentication,
+                    behaviorType.toString(), message.getKey()));
+        }
 
-        return resource.get(messageKey.getAggregateRootKey(), Message.class);
+        return message;
     }
 
     /**
@@ -43,23 +52,28 @@ public class ResourceRoadie {
      * provisioned for authentication.  Message's behavior is updated with
      * new behavior.
      *
-     * @param messageKey Identifies a message.
+     * @param message New message to store.
      * @param behavior New behavior.
      * @param authentication Authenticates access to messages.
      */
-    public Message storeMessage(MessageKey messageKey, Behavior behavior,
+    @SuppressWarnings("unchecked")
+    public Message storeMessage(Message message, Behavior behavior,
                              String authentication) {
 
         assert authentication!= null:
                 "Authentication cannot be null.";
 
-        // tf - Merge meta data for existing key.
-        Message message= this.accessMessage( messageKey, authentication);
-        if( message== null){
+        // tf - Merge behavior & values meta data for existing message.
+        Message persistent= this.accessMessage( message, authentication,
+                behavior.getBehaviorType());
+        if( persistent== null){
 
-            message= new Message( messageKey.getKey());
-            this.authenticator.provision( message.getMessageKey().getKey(),
-                    authentication);
+            this.authenticator.provision( message, authentication);
+        }else{
+
+            persistent.getValues().putAll( message.getValues());
+            persistent.setSecure( message.isSecure());
+            message= persistent;
         }
         message.getBehavior().put( behavior.getBehaviorType(), behavior);
         this.storeMessage( message);
@@ -72,6 +86,12 @@ public class ResourceRoadie {
         Resource resource= this.resources.get(
                 message.getMessageKey().getResourceName());
         resource.put(message);
+    }
+
+    public void deleteMessage(Message message) {
+
+        this.resources.get(
+                message.getMessageKey().getResourceName()).delete( message);
     }
 
     public void addResource( Resource resource){

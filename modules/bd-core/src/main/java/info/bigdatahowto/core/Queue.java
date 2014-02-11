@@ -31,11 +31,14 @@ public abstract class Queue {
      * and updates job status in the external resource once queued.
      *
      * @param message Message to process in a job.
+     * @param behaviorType Behavior to execute.
      * @param authentication Identifies the user originally requesting this job.
      */
-    public UUID push(Message message, String authentication){
+    public UUID push(Message message, BehaviorType behaviorType,
+                     String authentication){
 
-        Job job= new Job( message, authentication);
+        Job job= new Job( message, behaviorType, authentication,
+                message.getContextOwner());
         job.setStatus( "Job creation request has been received.");
         this.resource.put(job);
         this.write(job.getUuid());
@@ -81,7 +84,9 @@ public abstract class Queue {
     }
 
     public Job getJob(UUID uuid) {
-        return this.resource.get( uuid.toString(), Job.class);
+
+        Job job= new Job( uuid);
+        return this.resource.get( job);
     }
 
     /**

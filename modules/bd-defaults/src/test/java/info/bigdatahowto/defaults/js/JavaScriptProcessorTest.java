@@ -22,7 +22,8 @@ public class JavaScriptProcessorTest {
                 "function(env,key,meta){meta.processing=true; return true;}");
         message.getBehavior().put( behavior.getBehaviorType(), behavior);
         JavaScriptProcessor javaScriptProcessor= new JavaScriptProcessor(null, null);
-        ProcessingResult processingResult= javaScriptProcessor.process(message);
+        ProcessingResult processingResult= javaScriptProcessor.process(message,
+                behavior.getBehaviorType());
         assert processingResult!= null:
                 "JavaScriptProcessor.process did not return a processingResult.";
         assert processingResult.getMessage()!= null:
@@ -62,7 +63,8 @@ public class JavaScriptProcessorTest {
                 "return newMessages;}");
         message.getBehavior().put( behavior.getBehaviorType(), behavior);
         JavaScriptProcessor javaScriptProcessor= new JavaScriptProcessor(null, null);
-        ProcessingResult processingResult= javaScriptProcessor.process(message);
+        ProcessingResult processingResult= javaScriptProcessor.process(message,
+                behavior.getBehaviorType());
         assert processingResult!= null:
                 "JavaScriptProcessor.process did not return a processingResult.";
         assert processingResult.getMessages()!= null:
@@ -111,7 +113,8 @@ public class JavaScriptProcessorTest {
                 "function(env,key,meta){meta.testing='modified';meta.processing=true; return true;}");
         message.getBehavior().put( behavior.getBehaviorType(), behavior);
         JavaScriptProcessor javaScriptProcessor= new JavaScriptProcessor(null, null);
-        ProcessingResult processingResult= javaScriptProcessor.process(message);
+        ProcessingResult processingResult= javaScriptProcessor.process(message,
+                behavior.getBehaviorType());
         assert processingResult!= null:
                 "JavaScriptProcessor.process did not return a processingResult.";
         assert processingResult.getMessage()!= null:
