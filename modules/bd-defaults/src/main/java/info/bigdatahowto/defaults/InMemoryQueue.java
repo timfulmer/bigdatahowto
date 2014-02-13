@@ -21,6 +21,11 @@ public class InMemoryQueue extends Queue {
 
     private java.util.Queue<UUID> head, tail;
 
+    public InMemoryQueue() {
+
+        this(null);
+    }
+
     public InMemoryQueue( Resource resource) {
 
         super( resource);
@@ -48,7 +53,7 @@ public class InMemoryQueue extends Queue {
      * @return UUID in the queue.
      */
     @Override
-    protected UUID read() {
+    protected ResultTuple read() {
 
         if( this.head.isEmpty() && !this.tail.isEmpty()){
 
@@ -58,19 +63,22 @@ public class InMemoryQueue extends Queue {
         if( current!= null){
 
             this.tail.add( current);
+
+            return new ResultTuple(current, current.toString());
         }
 
-        return current;
+        return null;
     }
 
     /**
      * Deletes a uuid from the queue.
      *
-     * @param uuid Uuid to delete.
+     * @param identifier Identifies message within queue.
      */
     @Override
-    protected void delete(UUID uuid) {
+    protected void delete(String identifier) {
 
+        UUID uuid= UUID.fromString( identifier);
         if( !this.head.remove( uuid) && !this.tail.remove( uuid)){
 
             String msg= String.format( "Could not remove UUID '%s' from " +

@@ -19,13 +19,18 @@ public abstract class Queue {
     protected Resource resource;
 
     /**
-     * TODO: Use a cache for this.
+     * TODO: Use a cache instead of hash map with timeout.
      */
     private Map<String,KeyTimeout> keys= new HashMap<>();
 
-    protected Queue(Resource resource) {
+    protected Queue() {
 
         super();
+    }
+
+    protected Queue(Resource resource) {
+
+        this();
 
         this.resource = resource;
     }
@@ -71,15 +76,16 @@ public abstract class Queue {
 
         Job job;
         do{
-            UUID uuid= this.read();
-            if( uuid== null){
+            ResultTuple resultTuple= this.read();
+            if( resultTuple== null){
 
                 this.logger.info( "Job queue empty, returning null.");
 
                 // tf - There are no jobs in the queue.
                 return null;
             }
-            job = getJob(uuid);
+            job = getJob(resultTuple.uuid);
+            job.setQueueIdentifier( resultTuple.identifier);
         }while( job.getState()!= JobState.Queued);
         if( this.alreadyProcessingKey(job.getMessageKey().getKey())){
 
@@ -111,7 +117,7 @@ public abstract class Queue {
         job.toComplete();
         job.setStatus("Job processing complete.");
         this.resource.put(job);
-        this.delete( job.getUuid());
+        this.delete( job.getQueueIdentifier());
     }
 
     public Job getJob(UUID uuid) {
@@ -148,7 +154,7 @@ public abstract class Queue {
         job.toError();
         job.setStatus( msg);
         this.resource.put(job);
-        this.delete(job.getUuid());
+        this.delete(job.getQueueIdentifier());
     }
 
     /**
@@ -173,14 +179,14 @@ public abstract class Queue {
      *
      * @return UUID in the queue.
      */
-    protected abstract UUID read();
+    protected abstract ResultTuple read();
 
     /**
      * Deletes a uuid from the queue.
      *
-     * @param uuid Uuid to delete.
+     * @param identifier Identifies message within queue.
      */
-    protected abstract void delete( UUID uuid);
+    protected abstract void delete( String identifier);
 
     @javax.annotation.Resource
     public void setResource(Resource resource) {
@@ -194,6 +200,15 @@ public abstract class Queue {
             Calendar timeout= GregorianCalendar.getInstance();
             timeout.add(Calendar.MINUTE, 5);
             return this.creation.before( timeout.getTime());
+        }
+    }
+
+    public static class ResultTuple{
+        public UUID uuid;
+        public String identifier;
+        public ResultTuple(UUID uuid, String identifier) {
+            this.uuid = uuid;
+            this.identifier = identifier;
         }
     }
 }

@@ -45,6 +45,11 @@ public class Job extends AggregateRoot {
      */
     private JobState state;
 
+    /**
+     * Identifies this job within the queue.
+     */
+    private String queueIdentifier;
+
     public Job() {
 
         super();
@@ -141,6 +146,14 @@ public class Job extends AggregateRoot {
 
     public void setState(JobState state) {
         this.state = state;
+    }
+
+    public String getQueueIdentifier() {
+        return queueIdentifier;
+    }
+
+    public void setQueueIdentifier(String queueIdentifier) {
+        this.queueIdentifier = queueIdentifier;
     }
 
     /**

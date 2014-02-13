@@ -1,7 +1,5 @@
-package info.bigdatahowto.defaults;
+package info.bigdatahowto.defaults.aws;
 
-import com.amazonaws.auth.AWSCredentials;
-import com.amazonaws.auth.BasicAWSCredentials;
 import com.amazonaws.services.s3.AmazonS3;
 import com.amazonaws.services.s3.AmazonS3Client;
 import com.amazonaws.services.s3.model.*;
@@ -13,7 +11,6 @@ import java.io.UnsupportedEncodingException;
 import java.nio.charset.StandardCharsets;
 import java.util.ArrayList;
 import java.util.List;
-import java.util.Properties;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 
@@ -38,24 +35,9 @@ public class S3Resource extends Resource {
 
         super("s3");
 
-        Properties properties= new Properties();
-        try {
-
-            properties.load( this.getClass().getResourceAsStream( "/aws.properties"));
-        } catch (IOException e) {
-
-            String msg = String.format(
-                    "Could not load properties file from classpath resource " +
-                            "'/aws.properties'.");
-            this.logger.log(Level.SEVERE, msg, e);
-
-            throw new RuntimeException(msg, e);
-        }
-        AWSCredentials credentials= new BasicAWSCredentials(
-                properties.getProperty( "aws.accessKeyId"),
-                properties.getProperty( "aws.secretKey"));
-        this.amazonS3= new AmazonS3Client( credentials);
-
+        this.amazonS3= new AmazonS3Client(
+                new AmazonClient().getAwsCredentials("aws.s3.accessKeyId",
+                        "aws.s3.secretKey"));
         this.setBucketName( DEFAULT_BUCKET);
     }
 

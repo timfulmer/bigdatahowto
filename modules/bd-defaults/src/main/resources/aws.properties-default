@@ -1,3 +1,6 @@
 #Please copy this file to 'aws.properties' and fill in the blanks.
-aws.accessKeyId=<access-key-id>
-aws.secretKey=<secret-key>
+aws.s3.accessKeyId=<access-key-id>
+aws.s3.secretKey=<secret-key>
+
+aws.sqs.accessKeyId=<access-key-id>
+aws.sqs.secretKey=<secret-key>

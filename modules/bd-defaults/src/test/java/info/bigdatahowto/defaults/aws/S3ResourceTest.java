@@ -1,4 +1,4 @@
-package info.bigdatahowto.defaults;
+package info.bigdatahowto.defaults.aws;
 
 import org.junit.Before;
 import org.junit.Test;

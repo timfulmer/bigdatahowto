@@ -2,6 +2,8 @@ package info.bigdatahowto.api;
 
 import info.bigdatahowto.core.*;
 import info.bigdatahowto.defaults.*;
+import info.bigdatahowto.defaults.aws.S3Resource;
+import info.bigdatahowto.defaults.aws.SqsQueue;
 import info.bigdatahowto.defaults.js.JavaScriptProcessor;
 
 import java.util.UUID;
@@ -33,9 +35,11 @@ public class Bd {
 
         if( productionInstance== null){
 
-            UserRoadie userRoadie= new UserRoadie();
-            productionInstance= new Bd(new S3Resource(), new BdAuthenticator(
-                    userRoadie), userRoadie);
+            Resource resource= new S3Resource();
+            UserRoadie userRoadie= new UserRoadie( resource);
+            Queue queue= new SqsQueue( resource);
+            productionInstance= new Bd(resource, new BdAuthenticator(
+                    userRoadie), userRoadie, queue);
         }
 
         return productionInstance;
@@ -49,16 +53,17 @@ public class Bd {
     private Bd( String directory) {
 
         this( new FileResource( directory), new AlwaysAllowAuthenticator(),
-                new UserRoadie());
+                new UserRoadie(), new InMemoryQueue());
     }
 
-    private Bd(Resource resource, Authenticator authenticator, UserRoadie userRoadie){
+    private Bd(Resource resource, Authenticator authenticator, UserRoadie userRoadie, Queue queue){
 
         super();
 
         this.userRoadie= userRoadie;
         this.userRoadie.setResource( resource);
-        this.queue= new InMemoryQueue(resource);
+        this.queue= queue;
+        this.queue.setResource( resource);
         this.resourceRoadie= new ResourceRoadie( authenticator);
         this.resourceRoadie.addResource(resource);
         this.processor= new JavaScriptProcessor(this.queue,

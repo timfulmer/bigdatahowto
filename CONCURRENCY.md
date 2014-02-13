@@ -143,8 +143,8 @@ many threads each hitting the same message.  This resulted in many messages
 being processed without actually persisting their changes, due to stale data
 coming from s3.
 
-To address this case `Queue` is updated to be aware of the message keys it's
-handing out:
+To address this case `Bd` is implemented as a singleton and `Queue` is updated
+to be aware of the message keys it's handing out:
 
 ```
     /**
@@ -267,3 +267,97 @@ Gotta love AWS for scaling.
 
 ##SQSQueue
 
+Test case implementation:
+
+```
+package info.bigdatahowto.defaults.aws;
+
+import info.bigdatahowto.core.Queue;
+import info.bigdatahowto.defaults.FileResource;
+import org.junit.Before;
+import org.junit.Test;
+
+import java.util.UUID;
+
+/**
+ * @author timfulmer
+ */
+public class SqsQueueTest {
+
+    private SqsQueue sqsQueue;
+
+    @Before
+    public void before(){
+
+        this.sqsQueue= new SqsQueue( new FileResource());
+        this.sqsQueue.clear();
+    }
+
+    @Test
+    public void testQueue() throws InterruptedException {
+
+        UUID uuid= UUID.randomUUID();
+        this.sqsQueue.write( uuid);
+
+        Queue.ResultTuple result;
+        int times= 0;
+        do{
+            result= this.sqsQueue.read();
+            times++;
+            Thread.sleep( 500);
+        }while( result== null && times< 5);
+        assert result!= null: "Could not read message.";
+        assert uuid.equals( result.uuid): "Received incorrect result.";
+
+        this.sqsQueue.delete( result.identifier);
+        times= 0;
+        do{
+            result=  this.sqsQueue.read();
+            times++;
+            Thread.sleep( 500);
+        }while( result!= null && times< 5);
+        assert result== null: "Could not delete.";
+    }
+}
+```
+
+And benchmarking:
+
+```
+Requests per second:    8.31 [#/sec] (mean)
+Time per request:       120.315 [ms] (mean, across all concurrent requests)
+
+-c 16
+Requests per second:    7.90 [#/sec] (mean)
+Time per request:       126.580 [ms] (mean, across all concurrent requests)
+
+--poll
+Requests per second:    16.42 [#/sec] (mean)
+Time per request:       60.900 [ms] (mean, across all concurrent requests)
+
+-c 16
+Requests per second:    19.46 [#/sec] (mean)
+Time per request:       51.387 [ms] (mean, across all concurrent requests)
+```
+
+And with `AmazonSQSBufferedAsyncClient`
+
+```
+Requests per second:    6.75 [#/sec] (mean)
+Time per request:       148.136 [ms] (mean, across all concurrent requests)
+
+Requests per second:    6.89 [#/sec] (mean)
+Time per request:       145.151 [ms] (mean, across all concurrent requests)
+
+-- poll
+Requests per second:    10.45 [#/sec] (mean)
+Time per request:       95.731 [ms] (mean, across all concurrent requests)
+
+-c 16
+Requests per second:    7.61 [#/sec] (mean)
+Time per request:       131.428 [ms] (mean, across all concurrent requests)
+```
+
+Seems to be a little slower, though promises to be a little cheaper.  It's also
+much harder to build an integration test using `AmazonSQSBufferedAsyncClient`,
+so we're going to use the simple synchronous client for now.

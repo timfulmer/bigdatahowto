@@ -33,13 +33,16 @@ public class QueueTest {
             }
 
             @Override
-            protected UUID read() {
-                return popUuid();
+            protected ResultTuple read() {
+                UUID uuid= popUuid();
+                return new ResultTuple(uuid, uuid.toString());
             }
 
             @Override
-            protected void delete(UUID uuid) {
-                jobs.remove( uuid);
+            protected void delete(String identifier) {
+                if( identifier!= null){
+                    jobs.remove( UUID.fromString( identifier));
+                }
             }
         };
     }

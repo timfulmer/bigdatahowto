@@ -3,7 +3,7 @@ package info.bigdatahowto.api;
 import info.bigdatahowto.core.BehaviorType;
 import info.bigdatahowto.core.Job;
 import info.bigdatahowto.core.JobState;
-import info.bigdatahowto.defaults.S3Resource;
+import info.bigdatahowto.defaults.aws.S3Resource;
 import org.junit.After;
 import org.junit.Before;
 import org.junit.Test;
@@ -43,7 +43,6 @@ public class ProductionBdTest {
     @Before
     public void before() throws IOException {
 
-        this.bd.clear();
         this.clean();
     }
 
@@ -131,7 +130,7 @@ public class ProductionBdTest {
     }
 
     @Test
-    public void testDoubleTap(){
+    public void testDoubleTap() throws InterruptedException {
 
         this.bd.register( "test-authentication", "wordoink");
 
@@ -144,17 +143,21 @@ public class ProductionBdTest {
                 BehaviorType.Persist.toString(), authentication);
         this.bd.addMessage( jobUuid2, key, BEHAVIOR,
                 BehaviorType.Persist.toString(), authentication);
-        this.bd.processJob();
-        this.bd.processJob();
+        for( int i= 0; i< 4; i++){
+
+            this.bd.processJob();
+            Thread.sleep( 500);
+        }
 
         Integer count= ((Double) this.bd.queryMetaData( key, "count",
                 authentication)).intValue();
         assert count.equals( 2): "Count is not incrementing.";
 
         // tf - Check on spawned jobs.
-        for( int i= 0; i< 12; i++){
+        for( int i= 0; i< 24; i++){
 
             this.bd.processJob();
+            Thread.sleep( 500);
         }
 
         count= ((Double) this.bd.queryMetaData( makeKey( "tes"),
@@ -329,8 +332,9 @@ public class ProductionBdTest {
 
     private void clean() throws IOException {
 
-        // tf - Clean any files from previous runs.
+        // tf - Clean any artifacts from previous runs.
         new S3Resource().clean();
+        this.bd.clear();
     }
 
     private String makeKey( String word){
