@@ -56,7 +56,7 @@ public class S3ResourceTest {
 }
 ```
 
-#S3Resource Benchmarking
+##S3Resource Benchmarking
 
 Again, we're leaving registration out of benchmarking for the moment.  Let's
 push in a few messages.
