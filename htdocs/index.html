@@ -149,6 +149,9 @@
     <script>
         $(document).ready(function(){
             Sammy(function() {
+                this.get('#/concurrency', function(context) {
+                    renderMarkdown('CONCURRENCY.md');
+                });
                 this.get('#/auth', function(context) {
                     renderMarkdown('AUTH.md');
                 });
@@ -196,7 +199,8 @@
                                         "<li><a href='#/api'>5</a></li>"+
                                         "<li><a href='#/runtime'>6</a></li>"+
                                         "<li><a href='#/auth'>7</a></li>"+
-                                        "<li><a href='#/auth'>&raquo;</a></li>"+
+                                        "<li><a href='#/concurrency'>8</a></li>"+
+                                        "<li><a href='#/concurrency'>&raquo;</a></li>"+
                                         "</ul></div>");
                             }
                             divId= element.firstChild.nodeValue.replace(
