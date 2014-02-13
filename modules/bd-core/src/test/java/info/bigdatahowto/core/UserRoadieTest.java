@@ -71,8 +71,24 @@ public class UserRoadieTest {
 
         UserContext userContext= new UserContext();
         userContext.setUserContext( "test-userContext");
+        userContext.setAuthentication( "dummy-authentication");
         when( this.resourceMock.get( any( UserContext.class))).thenReturn(
                 userContext);
         this.userRoadie.register(AUTHENTICATION, userContext.getUserContext());
+    }
+
+    @Test
+    public void testContextExists_Auth(){
+
+        User user= new User();
+        user.setAuthentication( AUTHENTICATION);
+
+        UserContext userContext= new UserContext();
+        userContext.setUserContext( "test-userContext");
+        userContext.setAuthentication( AUTHENTICATION);
+        when( this.resourceMock.get( any( UserContext.class))).thenReturn(
+                userContext, user);
+        this.userRoadie.register(AUTHENTICATION, userContext.getUserContext());
+        verify( this.resourceMock).put( user);
     }
 }

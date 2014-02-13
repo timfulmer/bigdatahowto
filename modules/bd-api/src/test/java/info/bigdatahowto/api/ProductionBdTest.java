@@ -3,21 +3,18 @@ package info.bigdatahowto.api;
 import info.bigdatahowto.core.BehaviorType;
 import info.bigdatahowto.core.Job;
 import info.bigdatahowto.core.JobState;
-import info.bigdatahowto.defaults.BdAuthenticator;
-import info.bigdatahowto.defaults.FileResource;
-import org.apache.commons.io.FileUtils;
+import info.bigdatahowto.defaults.S3Resource;
 import org.junit.After;
 import org.junit.Before;
 import org.junit.Test;
 
-import java.io.File;
 import java.io.IOException;
 import java.util.UUID;
 
 /**
  * @author timfulmer
  */
-public class BdAuthTest {
+public class ProductionBdTest {
 
     private static final String BEHAVIOR= "function(env,word,meta){\n" +
             "        // Input validation.\n" +
@@ -41,13 +38,12 @@ public class BdAuthTest {
             "        return stems;\n" +
             "    }";
 
-    private Bd bd;
+    private Bd bd= Bd.productionInstance();
 
     @Before
     public void before() throws IOException {
 
-        this.bd= new Bd();
-        this.bd.setAuthenticator( new BdAuthenticator( this.bd.getUserRoadie()));
+        this.bd.clear();
         this.clean();
     }
 
@@ -65,7 +61,8 @@ public class BdAuthTest {
         String word= "testing";
         String key= this.makeKey( word);
         String authentication= "test-authentication";
-        UUID jobUuid= this.bd.addMessage( key, BEHAVIOR,
+        UUID jobUuid= UUID.randomUUID();
+        this.bd.addMessage( jobUuid, key, BEHAVIOR,
                 BehaviorType.Persist.toString(), authentication);
         assert jobUuid!= null:
                 "Bd.addMessage is not implemented correctly.";
@@ -125,7 +122,11 @@ public class BdAuthTest {
         String word= "testing";
         String key= this.makeKey( word);
         String authentication= "test-authentication";
-        this.bd.addMessage( key, BEHAVIOR, BehaviorType.Persist.toString(),
+        UUID jobUuid1= UUID.randomUUID();
+        UUID jobUuid2= UUID.randomUUID();
+        this.bd.addMessage( jobUuid1, key, BEHAVIOR, BehaviorType.Persist.toString(),
+                authentication);
+        this.bd.addMessage( jobUuid2, key, BEHAVIOR, BehaviorType.Persist.toString(),
                 authentication);
     }
 
@@ -137,10 +138,12 @@ public class BdAuthTest {
         String word= "testing";
         String key= this.makeKey( word);
         String authentication= "test-authentication";
-        this.bd.addMessage( key, BEHAVIOR, BehaviorType.Persist.toString(),
-                authentication);
-        this.bd.addMessage( key, BEHAVIOR, BehaviorType.Persist.toString(),
-                authentication);
+        UUID jobUuid1= UUID.randomUUID();
+        UUID jobUuid2= UUID.randomUUID();
+        this.bd.addMessage( jobUuid1, key, BEHAVIOR,
+                BehaviorType.Persist.toString(), authentication);
+        this.bd.addMessage( jobUuid2, key, BEHAVIOR,
+                BehaviorType.Persist.toString(), authentication);
         this.bd.processJob();
         this.bd.processJob();
 
@@ -167,10 +170,13 @@ public class BdAuthTest {
         String userContext= "test-userContext";
         this.bd.register( ownerAuthentication, userContext);
 
-        this.bd.addMessage( makeKey( userContext, "message01"), BEHAVIOR,
-                BehaviorType.Persist.toString(), ownerAuthentication);
-        this.bd.addMessage( makeKey( userContext, "message02"), BEHAVIOR,
-                BehaviorType.Persist.toString(), ownerAuthentication, true);
+        UUID jobUuid1= UUID.randomUUID();
+        UUID jobUuid2= UUID.randomUUID();
+        this.bd.addMessage( jobUuid1, makeKey( userContext, "message01"),
+                BEHAVIOR, BehaviorType.Persist.toString(), ownerAuthentication);
+        this.bd.addMessage( jobUuid2, makeKey( userContext, "message02"),
+                BEHAVIOR, BehaviorType.Persist.toString(), ownerAuthentication,
+                true);
 
         // tf - Access messages as an unregistered user.
         String firstVisitor= "test-firstVisitorAuthentication";
@@ -191,7 +197,8 @@ public class BdAuthTest {
         // tf - Attempt to modify and delete messages as an unregistered user.
         try{
 
-            this.bd.addMessage( makeKey( userContext, "message01"), BEHAVIOR,
+            this.bd.addMessage( UUID.randomUUID(), makeKey( userContext,
+                    "message01"), BEHAVIOR,
                     BehaviorType.Persist.toString(), firstVisitor);
             assert false: "Unregistered user can access secure messages.";
         }catch( IllegalAccessError e){
@@ -200,7 +207,8 @@ public class BdAuthTest {
         }
         try{
 
-            this.bd.addMessage(makeKey(userContext, "message01"), BEHAVIOR,
+            this.bd.addMessage(UUID.randomUUID(), makeKey(userContext,
+                    "message01"), BEHAVIOR,
                     BehaviorType.Delete.toString(), firstVisitor);
             assert false: "Unregistered user can access secure messages.";
         }catch( IllegalAccessError e){
@@ -209,13 +217,15 @@ public class BdAuthTest {
         }
 
         // tf - Create messages as unregistered, and attempt to modify & delete.
-        this.bd.addMessage( makeKey( userContext, "message03"), BEHAVIOR,
+        this.bd.addMessage( UUID.randomUUID(), makeKey( userContext,
+                "message03"), BEHAVIOR,
                 BehaviorType.Persist.toString(), firstVisitor);
         this.bd.queryMetaData( makeKey( userContext, "message03"), "count",
                 firstVisitor);
         try{
 
-            this.bd.addMessage( makeKey( userContext, "message03"), BEHAVIOR,
+            this.bd.addMessage( UUID.randomUUID(), makeKey( userContext,
+                    "message03"), BEHAVIOR,
                     BehaviorType.Persist.toString(), firstVisitor);
             assert false: "Unregistered user can access secure messages.";
         }catch( IllegalAccessError e){
@@ -224,7 +234,8 @@ public class BdAuthTest {
         }
         try{
 
-            this.bd.addMessage( makeKey( userContext, "message03"), BEHAVIOR,
+            this.bd.addMessage( UUID.randomUUID(), makeKey( userContext,
+                    "message03"), BEHAVIOR,
                     BehaviorType.Delete.toString(), firstVisitor);
             assert false: "Unregistered user can access secure messages.";
         }catch( IllegalAccessError e){
@@ -232,13 +243,15 @@ public class BdAuthTest {
             // Noop.
         }
 
-        this.bd.addMessage( makeKey( userContext, "message04"), BEHAVIOR,
+        this.bd.addMessage( UUID.randomUUID(), makeKey( userContext,
+                "message04"), BEHAVIOR,
                 BehaviorType.Persist.toString(), firstVisitor, true);
         this.bd.queryMetaData(makeKey(userContext, "message04"), "count",
                 firstVisitor);
         try{
 
-            this.bd.addMessage( makeKey( userContext, "message04"), BEHAVIOR,
+            this.bd.addMessage( UUID.randomUUID(), makeKey( userContext,
+                    "message04"), BEHAVIOR,
                     BehaviorType.Persist.toString(), firstVisitor);
             assert false: "Unregistered user can access secure messages.";
         }catch( IllegalAccessError e){
@@ -247,7 +260,8 @@ public class BdAuthTest {
         }
         try{
 
-            this.bd.addMessage( makeKey( userContext, "message04"), BEHAVIOR,
+            this.bd.addMessage( UUID.randomUUID(), makeKey( userContext,
+                    "message04"), BEHAVIOR,
                     BehaviorType.Delete.toString(), firstVisitor);
             assert false: "Unregistered user can access secure messages.";
         }catch( IllegalAccessError e){
@@ -271,13 +285,17 @@ public class BdAuthTest {
 
         // tf - Register second user, modify & delete.
         this.bd.register( firstVisitor, null);
-        this.bd.addMessage( makeKey( userContext, "message03"), BEHAVIOR,
+        this.bd.addMessage( UUID.randomUUID(), makeKey( userContext,
+                "message03"), BEHAVIOR,
                 BehaviorType.Persist.toString(), firstVisitor);
-        this.bd.addMessage( makeKey( userContext, "message03"), BEHAVIOR,
+        this.bd.addMessage( UUID.randomUUID(), makeKey( userContext,
+                "message03"), BEHAVIOR,
                 BehaviorType.Delete.toString(), firstVisitor);
-        this.bd.addMessage( makeKey( userContext, "message04"), BEHAVIOR,
+        this.bd.addMessage( UUID.randomUUID(), makeKey( userContext,
+                "message04"), BEHAVIOR,
                 BehaviorType.Persist.toString(), firstVisitor);
-        this.bd.addMessage( makeKey( userContext, "message04"), BEHAVIOR,
+        this.bd.addMessage( UUID.randomUUID(), makeKey( userContext,
+                "message04"), BEHAVIOR,
                 BehaviorType.Delete.toString(), firstVisitor);
 
         // tf - Context owner can see all messages created by second user.
@@ -286,13 +304,17 @@ public class BdAuthTest {
         this.bd.queryMetaData( makeKey( userContext, "message04"), "count",
                 ownerAuthentication);
         // tf - Modify and delete.
-        this.bd.addMessage( makeKey( userContext, "message03"), BEHAVIOR,
+        this.bd.addMessage( UUID.randomUUID(), makeKey( userContext,
+                "message03"), BEHAVIOR,
                 BehaviorType.Persist.toString(), ownerAuthentication);
-        this.bd.addMessage( makeKey( userContext, "message03"), BEHAVIOR,
+        this.bd.addMessage( UUID.randomUUID(), makeKey( userContext,
+                "message03"), BEHAVIOR,
                 BehaviorType.Delete.toString(), ownerAuthentication);
-        this.bd.addMessage( makeKey( userContext, "message04"), BEHAVIOR,
+        this.bd.addMessage( UUID.randomUUID(), makeKey( userContext,
+                "message04"), BEHAVIOR,
                 BehaviorType.Persist.toString(), ownerAuthentication);
-        this.bd.addMessage( makeKey( userContext, "message04"), BEHAVIOR,
+        this.bd.addMessage( UUID.randomUUID(), makeKey( userContext,
+                "message04"), BEHAVIOR,
                 BehaviorType.Delete.toString(), ownerAuthentication);
     }
 
@@ -308,11 +330,7 @@ public class BdAuthTest {
     private void clean() throws IOException {
 
         // tf - Clean any files from previous runs.
-        File directory= new File(FileResource.DEFAULT_DIRECTORY);
-        if( directory.exists()){
-
-            FileUtils.cleanDirectory(directory);
-        }
+        new S3Resource().clean();
     }
 
     private String makeKey( String word){
@@ -322,6 +340,6 @@ public class BdAuthTest {
 
     private String makeKey( String context, String word){
 
-        return String.format( "//file/%s/%s", context, word);
+        return String.format( "//s3/%s/%s", context, word);
     }
 }

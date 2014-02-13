@@ -45,11 +45,14 @@ class ApplicationSpec extends Specification {
       contentAsString(result) must equalTo("Job processing complete.")
     }
 
-//    "register context owner" in new WithApplication{
-//      var result= route(FakeRequest(PUT,"/user/context/contextOwner")).get
-//      status(result) must equalTo(OK)
-//      contentAsString(result) must equalTo("User registration complete.")
-//    }
+    "register context owner" in new WithApplication{
+      var result= route(FakeRequest(PUT,"/user/context/contextOwner")).get
+      status(result) must equalTo(OK)
+      contentAsString(result) must equalTo("User registration complete.")
+      val ownerMessageKey= "/data/context/"+ System.currentTimeMillis()
+      result= route(FakeRequest(POST,ownerMessageKey+ "?authentication=contextOwner").withTextBody( BEHAVIOR)).get
+      status(result) must equalTo(OK)
+    }
 
 //    "create new message as context owner and process" in new WithApplication{
 //      // Create new message as context owner.

@@ -1,6 +1,6 @@
 package info.bigdatahowto.core;
 
-import java.util.UUID;
+import java.util.*;
 import java.util.logging.Logger;
 
 /**
@@ -18,6 +18,11 @@ public abstract class Queue {
      */
     protected Resource resource;
 
+    /**
+     * TODO: Use a cache for this.
+     */
+    private Map<String,KeyTimeout> keys= new HashMap<>();
+
     protected Queue(Resource resource) {
 
         super();
@@ -30,15 +35,22 @@ public abstract class Queue {
      * job to the external resource; writes the job to the underlying queue;
      * and updates job status in the external resource once queued.
      *
+     * TODO: Implement check for unique UUID.
+     *
+     * @param jobUuid Use this as the Job.uuid if not null.
      * @param message Message to process in a job.
      * @param behaviorType Behavior to execute.
      * @param authentication Identifies the user originally requesting this job.
      */
-    public UUID push(Message message, BehaviorType behaviorType,
+    public UUID push(UUID jobUuid, Message message, BehaviorType behaviorType,
                      String authentication){
 
         Job job= new Job( message, behaviorType, authentication,
                 message.getContextOwner());
+        if( jobUuid!= null){
+
+            job.setUuid( jobUuid);
+        }
         job.setStatus( "Job creation request has been received.");
         this.resource.put(job);
         this.write(job.getUuid());
@@ -69,6 +81,10 @@ public abstract class Queue {
             }
             job = getJob(uuid);
         }while( job.getState()!= JobState.Queued);
+        if( this.alreadyProcessingKey(job.getMessageKey().getKey())){
+
+            return null;
+        }
         job.toProcessing();
         job.setStatus("Job processing in progress ...");
         this.resource.put(job);
@@ -76,10 +92,25 @@ public abstract class Queue {
         return job;
     }
 
+    private synchronized boolean alreadyProcessingKey(String key){
+
+        KeyTimeout timeout= this.keys.get(key);
+        if( timeout== null || !timeout.valid()){
+
+            this.keys.put( key, new KeyTimeout());
+
+            return false;
+        }
+
+        return true;
+    }
+
     public void complete(Job job){
 
+        this.keys.remove( job.getMessageKey().getKey());
         job.toComplete();
-        this.resource.put( job);
+        job.setStatus("Job processing complete.");
+        this.resource.put(job);
         this.delete( job.getUuid());
     }
 
@@ -108,6 +139,7 @@ public abstract class Queue {
      */
     public void error( Job job, String msg){
 
+        this.keys.remove( job.getMessageKey().getKey());
         if( msg== null){
 
             msg= "Job processing encountered an unrecoverable error.  " +
@@ -117,6 +149,14 @@ public abstract class Queue {
         job.setStatus( msg);
         this.resource.put(job);
         this.delete(job.getUuid());
+    }
+
+    /**
+     * Empty the queue.
+     */
+    public void clear(){
+
+        this.keys.clear();
     }
 
     /**
@@ -145,5 +185,15 @@ public abstract class Queue {
     @javax.annotation.Resource
     public void setResource(Resource resource) {
         this.resource = resource;
+    }
+
+    private class KeyTimeout{
+        private Date creation;
+        private KeyTimeout() {this.creation = new Date();}
+        private boolean valid(){
+            Calendar timeout= GregorianCalendar.getInstance();
+            timeout.add(Calendar.MINUTE, 5);
+            return this.creation.before( timeout.getTime());
+        }
     }
 }

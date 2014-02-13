@@ -49,7 +49,8 @@ public class QueueTest {
 
         Message message= fakeMessage();
         String authentication= "test-authentication";
-        this.queue.push( message, BehaviorType.Persist, authentication);
+        UUID jobUuid= UUID.randomUUID();
+        this.queue.push(jobUuid, message, BehaviorType.Persist, authentication);
 
         Job job= fakeJob();
         job.setUuid( popUuid());

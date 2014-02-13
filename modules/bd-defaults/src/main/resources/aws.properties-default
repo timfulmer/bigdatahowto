@@ -1,0 +1,3 @@
+#Please copy this file to 'aws.properties' and fill in the blanks.
+aws.accessKeyId=<access-key-id>
+aws.secretKey=<secret-key>

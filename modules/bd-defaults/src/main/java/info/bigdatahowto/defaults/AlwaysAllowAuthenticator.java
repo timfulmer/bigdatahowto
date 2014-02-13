@@ -3,6 +3,7 @@ package info.bigdatahowto.defaults;
 import info.bigdatahowto.core.Authenticator;
 import info.bigdatahowto.core.BehaviorType;
 import info.bigdatahowto.core.Message;
+import info.bigdatahowto.core.UserRoadie;
 
 /**
  * Implements Authenticator with an always allow policy.
@@ -37,5 +38,4 @@ public class AlwaysAllowAuthenticator implements Authenticator {
 
         // Noop.
     }
-
 }

@@ -5,6 +5,7 @@ import org.junit.Test;
 
 import java.util.ArrayList;
 import java.util.List;
+import java.util.UUID;
 
 import static info.bigdatahowto.core.TestUtils.fakeJob;
 import static info.bigdatahowto.core.TestUtils.fakeMessage;
@@ -71,7 +72,8 @@ public class ProcessorTest {
 
         this.processor.pullJob();
 
-        verify(this.queueMock).push(message, BehaviorType.Persist, job.getJobOwner());
+        verify(this.queueMock).push(any(UUID.class), eq(message),
+                eq(BehaviorType.Persist), eq(job.getJobOwner()));
     }
 
     @Test
@@ -155,7 +157,8 @@ public class ProcessorTest {
         this.processor.setResourceRoadie( this.resourceRoadieMock);
         this.processor.pullJob();
 
-        verify(this.queueMock).push(message, BehaviorType.Persist, job.getJobOwner());
+        verify(this.queueMock).push(any(UUID.class), eq(message),
+                eq(BehaviorType.Persist), eq(job.getJobOwner()));
     }
 
     @Test

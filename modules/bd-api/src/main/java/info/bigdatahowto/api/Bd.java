@@ -1,9 +1,7 @@
 package info.bigdatahowto.api;
 
 import info.bigdatahowto.core.*;
-import info.bigdatahowto.defaults.AlwaysAllowAuthenticator;
-import info.bigdatahowto.defaults.FileResource;
-import info.bigdatahowto.defaults.InMemoryQueue;
+import info.bigdatahowto.defaults.*;
 import info.bigdatahowto.defaults.js.JavaScriptProcessor;
 
 import java.util.UUID;
@@ -17,38 +15,64 @@ import static org.apache.commons.collections.MapUtils.isEmpty;
  */
 public class Bd {
 
+    private static Bd defaultInstance;
+
+    public static Bd defaultInstance( String directory){
+
+        if( defaultInstance== null){
+
+            defaultInstance= new Bd( directory);
+        }
+
+        return defaultInstance;
+    }
+
+    private static Bd productionInstance;
+
+    public static Bd productionInstance(){
+
+        if( productionInstance== null){
+
+            UserRoadie userRoadie= new UserRoadie();
+            productionInstance= new Bd(new S3Resource(), new BdAuthenticator(
+                    userRoadie), userRoadie);
+        }
+
+        return productionInstance;
+    }
+
     private UserRoadie userRoadie;
     private ResourceRoadie resourceRoadie;
     private Queue queue;
     private Processor processor;
 
-    public Bd() {
+    private Bd( String directory) {
 
-        this( null);
+        this( new FileResource( directory), new AlwaysAllowAuthenticator(),
+                new UserRoadie());
     }
 
-    public Bd( String directory) {
+    private Bd(Resource resource, Authenticator authenticator, UserRoadie userRoadie){
 
         super();
 
-        Resource resource= new FileResource( directory);
-        this.setUserRoadie( new UserRoadie( resource));
-        this.setQueue( new InMemoryQueue(resource));
-        this.setResourceRoadie( new ResourceRoadie(
-                new AlwaysAllowAuthenticator()));
-        this.getResourceRoadie().addResource(resource);
-        this.setProcessor( new JavaScriptProcessor(this.getQueue(),
-                this.getResourceRoadie()));
+        this.userRoadie= userRoadie;
+        this.userRoadie.setResource( resource);
+        this.queue= new InMemoryQueue(resource);
+        this.resourceRoadie= new ResourceRoadie( authenticator);
+        this.resourceRoadie.addResource(resource);
+        this.processor= new JavaScriptProcessor(this.queue,
+                this.resourceRoadie);
     }
 
-    public UUID addMessage( String key, String behaviorString,
+    public UUID addMessage( UUID jobUuid, String key, String behaviorString,
                             String behaviorType, String authentication){
 
-        return this.addMessage( key, behaviorString, behaviorType,
+        return this.addMessage( jobUuid, key, behaviorString, behaviorType,
                 authentication, false);
     }
 
-    public UUID addMessage( String key, String behaviorString,
+    public UUID addMessage( UUID jobUuid, String key, String behaviorString,
                             String behaviorTypeString, String authentication,
                             boolean secure){
 
@@ -61,7 +85,7 @@ public class Bd {
         message= this.resourceRoadie.storeMessage( message, behavior,
                 authentication);
 
-        return this.queue.push( message, behaviorType, authentication);
+        return this.queue.push( jobUuid, message, behaviorType, authentication);
     }
 
     public Job queryJob( UUID uuid, String authentication){
@@ -102,42 +126,11 @@ public class Bd {
 
     public void register( String authentication, String userContext){
 
-        this.userRoadie.register( authentication, userContext);
+        this.userRoadie.register(authentication, userContext);
     }
 
-    public UserRoadie getUserRoadie() {
-        return userRoadie;
-    }
+    public void clear() {
 
-    public void setUserRoadie(UserRoadie userRoadie) {
-        this.userRoadie = userRoadie;
-    }
-
-    public ResourceRoadie getResourceRoadie() {
-        return resourceRoadie;
-    }
-
-    public void setResourceRoadie(ResourceRoadie resourceRoadie) {
-        this.resourceRoadie = resourceRoadie;
-    }
-
-    public Queue getQueue() {
-        return queue;
-    }
-
-    public void setQueue(Queue queue) {
-        this.queue = queue;
-    }
-
-    public Processor getProcessor() {
-        return processor;
-    }
-
-    public void setProcessor(Processor processor) {
-        this.processor = processor;
-    }
-
-    public void setAuthenticator( Authenticator authenticator){
-         this.resourceRoadie.setAuthenticator( authenticator);
+        this.queue.clear();
     }
 }

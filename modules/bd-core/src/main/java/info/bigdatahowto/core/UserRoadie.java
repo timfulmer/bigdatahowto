@@ -10,9 +10,14 @@ public class UserRoadie {
 
     private Resource resource;
 
-    public UserRoadie(Resource resource) {
+    public UserRoadie() {
 
         super();
+    }
+
+    public UserRoadie(Resource resource) {
+
+        this();
 
         this.resource = resource;
     }

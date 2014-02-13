@@ -104,7 +104,7 @@ public abstract class Resource {
     public <T extends AggregateRoot> T get( AggregateRoot aggregateRoot){
 
         String json= this.read(aggregateRoot.resourceKey());
-        if( json== null){
+        if( json== null || json.length()== 0){
 
             return null;
         }

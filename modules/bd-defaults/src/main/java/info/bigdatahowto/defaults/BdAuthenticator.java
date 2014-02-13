@@ -11,14 +11,9 @@ public class BdAuthenticator implements Authenticator {
 
     private UserRoadie userRoadie;
 
-    public BdAuthenticator() {
-
-        super();
-    }
-
     public BdAuthenticator(UserRoadie userRoadie) {
 
-        this();
+        super();
 
         this.setUserRoadie( userRoadie);
     }

@@ -191,11 +191,8 @@ tests.  Let's push in a few messages:
     `http://localhost:9000/data/wordoink/testing`
 
 ```
-              min  mean[+/-sd] median   max
-Connect:        0    0   0.1      0       1
-Processing:     3    4   3.1      3      31
-Waiting:        1    4   3.1      3      31
-Total:          3    5   3.1      4      31
+Requests per second:    384.13 [#/sec] (mean)
+Time per request:       2.603 [ms] (mean, across all concurrent requests)
 ```
 
 And then we process a few:
@@ -203,11 +200,8 @@ And then we process a few:
  - `ab -n 1000 http://localhost:9000/job/poll`
 
 ```
-              min  mean[+/-sd] median   max
-Connect:        0    0   0.1      0       1
-Processing:     2   29  23.2     26     548
-Waiting:        2   29  23.2     25     548
-Total:          2   29  23.2     26     548
+Requests per second:    769.96 [#/sec] (mean)
+Time per request:       1.299 [ms] (mean, across all concurrent requests)
 ```
 
 And now let's spot check a couple GET queries:

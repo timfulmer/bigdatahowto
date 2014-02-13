@@ -83,6 +83,15 @@ public class InMemoryQueue extends Queue {
         }
     }
 
+    @Override
+    public void clear() {
+
+        super.clear();
+
+        this.head.clear();
+        this.tail.clear();
+    }
+
     private void swap(){
 
         this.head= this.tail;

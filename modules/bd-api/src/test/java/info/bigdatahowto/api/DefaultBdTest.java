@@ -16,7 +16,7 @@ import java.util.UUID;
 /**
  * @author timfulmer
  */
-public class BdTest {
+public class DefaultBdTest {
 
     private static final String BEHAVIOR= "function(env,word,meta){\n" +
             "        // Input validation.\n" +
@@ -40,12 +40,12 @@ public class BdTest {
             "        return stems;\n" +
             "    }";
 
-    private Bd bd;
+    private Bd bd= Bd.defaultInstance( null);
 
     @Before
     public void before() throws IOException {
 
-        this.bd= new Bd();
+        this.bd.clear();
         this.clean();
     }
 
@@ -61,7 +61,8 @@ public class BdTest {
         String word= "testing";
         String key= this.makeKey( word);
         String authentication= "test-authentication";
-        UUID jobUuid= this.bd.addMessage( key, BEHAVIOR,
+        UUID jobUuid= UUID.randomUUID();
+        this.bd.addMessage( jobUuid, key, BEHAVIOR,
                 BehaviorType.Persist.toString(), authentication);
         assert jobUuid!= null:
                 "Bd.addMessage is not implemented correctly.";
@@ -108,7 +109,7 @@ public class BdTest {
             this.assertCount(object);
         }
 
-        this.bd.addMessage( key, BEHAVIOR, BehaviorType.Delete.toString(),
+        this.bd.addMessage( jobUuid, key, BEHAVIOR, BehaviorType.Delete.toString(),
                 authentication);
         this.bd.processJob();
         object= this.bd.queryMetaData( key, "count", authentication);
@@ -133,10 +134,12 @@ public class BdTest {
         String word= "testing";
         String key= this.makeKey( word);
         String authentication= "test-authentication";
-        this.bd.addMessage( key, BEHAVIOR, BehaviorType.Persist.toString(),
-                authentication);
-        this.bd.addMessage( key, BEHAVIOR, BehaviorType.Persist.toString(),
-                authentication);
+        UUID jobUuid1= UUID.randomUUID();
+        UUID jobUuid2= UUID.randomUUID();
+        this.bd.addMessage( jobUuid1, key, BEHAVIOR,
+                BehaviorType.Persist.toString(), authentication);
+        this.bd.addMessage( jobUuid2, key, BEHAVIOR,
+                BehaviorType.Persist.toString(), authentication);
         this.bd.processJob();
         this.bd.processJob();
 

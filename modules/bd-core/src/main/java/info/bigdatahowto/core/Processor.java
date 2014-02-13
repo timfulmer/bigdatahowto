@@ -1,5 +1,6 @@
 package info.bigdatahowto.core;
 
+import java.util.UUID;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 
@@ -112,7 +113,8 @@ public abstract class Processor {
                 Message m= this.resourceRoadie.storeMessage(
                         new Message( newMessage.makeKey()), newMessage.behavior,
                         job.getJobOwner());
-                this.queue.push( m, newMessage.behavior.getBehaviorType(),
+                this.queue.push(UUID.randomUUID(), m,
+                        newMessage.behavior.getBehaviorType(),
                         job.getJobOwner());
             }
         }
