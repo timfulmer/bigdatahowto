@@ -120,12 +120,10 @@ the above Big Data Design Pattern using the following:
 - SQS for Fault Tolerance and Error Recovery
 - S3 for Long Term Storage
 - Caching with ElastiCache
-- Deployed on EC2
-- NGINX Web Proxy
 
 RESTful JSON services are used to interface with the Input & Read models, as
 well as for internal communication. Eventually the goal is to publish a demo
-application on the site, and have an EC2 AMI available to play around with.
+application on the site.
 
 ###Reference
 
