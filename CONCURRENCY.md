@@ -253,7 +253,8 @@ Requests per second:    72.58 [#/sec] (mean)
 Time per request:       13.779 [ms] (mean, across all concurrent requests)
 ```
 
- - `ab -n 1000 http://localhost:9000/job/2e5b249e-f6d5-452f-9ec1-43aa50e065e1?authentication=wordoinkOwner`
+ - `ab -n 1000 http://localhost:9000/job/2e5b249e-f6d5-452f-9ec1-43aa50e065e1`
+ `?authentication=wordoinkOwner`
 
 ```
 Requests per second:    8.47 [#/sec] (mean)
