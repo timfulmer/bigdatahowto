@@ -71,10 +71,6 @@ public class UserRoadie {
         this.resource.put( user);
     }
 
-    public void setResource(Resource resource) {
-        this.resource = resource;
-    }
-
     public UserContext accessUserContext(String userContextString) {
 
         UserContext userContext= new UserContext( userContextString);
@@ -83,5 +79,9 @@ public class UserRoadie {
                 "UserContext '%s' does not exist.", userContextString);
 
         return userContext;
+    }
+
+    public void setResource(Resource resource) {
+        this.resource = resource;
     }
 }

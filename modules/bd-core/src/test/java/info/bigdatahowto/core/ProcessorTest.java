@@ -74,6 +74,7 @@ public class ProcessorTest {
 
         verify(this.queueMock).push(any(UUID.class), eq(message),
                 eq(BehaviorType.Persist), eq(job.getJobOwner()));
+        verify(this.queueMock).complete( job);
     }
 
     @Test
@@ -299,5 +300,31 @@ public class ProcessorTest {
         when(this.processingResultMock.getMessages()).thenReturn(null);
 
         this.processor.pullJob();
+    }
+
+    @Test
+    public void testDelete(){
+
+        Job job= fakeJob();
+        job.setBehaviorType( BehaviorType.Delete);
+        when(this.queueMock.pop()).thenReturn( job);
+
+        Message message= fakeMessage();
+        Behavior behavior= new Behavior( BehaviorType.Delete, "test-value");
+        message.getBehavior().put(behavior.getBehaviorType(), behavior);
+        when(this.resourceRoadieMock.accessMessage(
+                any( Message.class),
+                eq(job.getJobOwner()),
+                eq(BehaviorType.Delete)
+        )).thenReturn(message);
+        when(this.processingResultMock.isContinueProcessing()).thenReturn(true);
+        when(this.processingResultMock.getMessage()).thenReturn(message);
+        List<ProcessingResult.NewMessage> messages= new ArrayList<>(0);
+        when(this.processingResultMock.getMessages()).thenReturn(messages);
+
+        this.processor.pullJob();
+
+        verify(this.resourceRoadieMock).deleteMessage(any(Message.class));
+        verify(this.queueMock).complete( job);
     }
 }

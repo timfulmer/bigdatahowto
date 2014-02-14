@@ -76,24 +76,40 @@ public class ResourceRoadie {
             message= persistent;
         }
         message.getBehavior().put( behavior.getBehaviorType(), behavior);
-        this.storeMessage( message);
+        this.updateMessage(message);
 
         return message;
     }
 
-    public void storeMessage(Message message) {
+    /**
+     * Updates persistent message state on an already configured message.
+     *
+     * @param message    Message to update.
+     */
+    public void updateMessage(Message message) {
 
         Resource resource= this.resources.get(
                 message.getMessageKey().getResourceName());
         resource.put(message);
     }
 
+    /**
+     * Deletes a message from the underlying resource.
+     *
+     * @param message    Message to delete.
+     */
     public void deleteMessage(Message message) {
 
         this.resources.get(
                 message.getMessageKey().getResourceName()).delete( message);
     }
 
+    /**
+     * Add a resource.  Please note there is only one resource per-resource
+     * name.
+     *
+     * @param resource    Resource to add.
+     */
     public void addResource( Resource resource){
 
         this.resources.put( resource.getName(), resource);

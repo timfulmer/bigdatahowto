@@ -40,7 +40,7 @@ public abstract class Queue {
      * job to the external resource; writes the job to the underlying queue;
      * and updates job status in the external resource once queued.
      *
-     * TODO: Implement check for unique UUID.
+     * !!WARNING: This method assumes unique job UUIDs!!
      *
      * @param jobUuid Use this as the Job.uuid if not null.
      * @param message Message to process in a job.
@@ -199,7 +199,7 @@ public abstract class Queue {
         private boolean valid(){
             Calendar timeout= GregorianCalendar.getInstance();
             timeout.add(Calendar.MINUTE, -5);
-            return this.creation.before( timeout.getTime());
+            return timeout.getTime().before( this.creation);
         }
     }
 

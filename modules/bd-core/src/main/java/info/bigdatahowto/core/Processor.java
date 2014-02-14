@@ -103,7 +103,7 @@ public abstract class Processor {
 
             // tf - Do not need an authentication here since we're updating a
             //  message already authenticated above.
-            this.resourceRoadie.storeMessage( processingResult.getMessage());
+            this.resourceRoadie.updateMessage(processingResult.getMessage());
         }
         if( !isEmpty( processingResult.getMessages())){
 

@@ -85,10 +85,34 @@ public class UserRoadieTest {
 
         UserContext userContext= new UserContext();
         userContext.setUserContext( "test-userContext");
-        userContext.setAuthentication( AUTHENTICATION);
+        userContext.setAuthentication(AUTHENTICATION);
         when( this.resourceMock.get( any( UserContext.class))).thenReturn(
                 userContext, user);
         this.userRoadie.register(AUTHENTICATION, userContext.getUserContext());
-        verify( this.resourceMock).put( user);
+        verify( this.resourceMock).put(user);
+    }
+
+    @Test
+    public void testAccessUserContext(){
+
+        String userContextString= "test-userContext";
+        UserContext userContext= new UserContext();
+        when( this.resourceMock.get( any( UserContext.class))).thenReturn(
+                userContext);
+
+        UserContext result= this.userRoadie.accessUserContext(
+                userContextString);
+        assert result!= null:
+                "UserContextRoadie.accessUserContext is not implemented correctly.";
+    }
+
+    @Test( expected = AssertionError.class)
+    public void testAccessUserContext_NoContext(){
+
+        String userContextString= "test-userContext";
+        when( this.resourceMock.get( any( UserContext.class))).thenReturn(
+                null);
+
+        this.userRoadie.accessUserContext( userContextString);
     }
 }

@@ -58,7 +58,7 @@ public class Message extends AggregateRoot {
 
     public Message( String key){
 
-        this(key, null, new HashMap<BehaviorType, Behavior>(0),
+        this(key, new HashMap(0), new HashMap<BehaviorType, Behavior>(0),
                 new HashMap<String, String>(0));
     }
 

@@ -35,7 +35,8 @@ public class QueueTest {
             @Override
             protected ResultTuple read() {
                 UUID uuid= popUuid();
-                return new ResultTuple(uuid, uuid.toString());
+                return uuid== null ? null :
+                        new ResultTuple(uuid, uuid.toString());
             }
 
             @Override
@@ -96,7 +97,44 @@ public class QueueTest {
         verify( this.resourceMock).put( job);
     }
 
-    private final UUID popUuid(){
-        return jobs.iterator().next();
+    @Test
+    public void testKeySynchronization(){
+
+        Message message= fakeMessage();
+        String authentication= "test-authentication";
+        UUID jobUuid= UUID.randomUUID();
+        this.queue.push(jobUuid, message, BehaviorType.Persist, authentication);
+        this.queue.push(jobUuid, message, BehaviorType.Persist, authentication);
+
+        Job job1= fakeJob();
+        job1.setUuid(popUuid());
+        job1.setState(JobState.Queued);
+        Job job2= fakeJob();
+        job2.setUuid(popUuid());
+        job2.setState(JobState.Queued);
+        when(this.resourceMock.get( any(Job.class))).thenReturn( job1, job2,
+                job2);
+        Job result= this.queue.pop();
+        assert result.getUuid().equals(job1.getUuid()):
+                "Queue.push is not writing job correctly.";
+        assert JobState.Processing== job1.getState():
+                "Queue.pop is not updating job state correctly.";
+
+        result= this.queue.pop();
+        assert result== null: "Job.pop is not synchronizing on key.";
+
+        this.queue.clear();
+        result= this.queue.pop();
+        assert result!= null: "Job.clear is not clearing key cache.";
+    }
+
+    @Test
+    public void testNullRead(){
+
+        this.queue.pop();
+    }
+
+    private UUID popUuid(){
+        return jobs.isEmpty() ? null : jobs.iterator().next();
     }
 }

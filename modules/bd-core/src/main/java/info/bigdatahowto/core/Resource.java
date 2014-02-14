@@ -8,6 +8,8 @@ import java.util.Date;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 
+import static org.apache.commons.lang3.StringUtils.isEmpty;
+
 /**
  * Represents a resource external to bd code.  This may be an S3
  * bucket, an email server, etc.
@@ -104,7 +106,7 @@ public abstract class Resource {
     public <T extends AggregateRoot> T get( AggregateRoot aggregateRoot){
 
         String json= this.read(aggregateRoot.resourceKey());
-        if( json== null || json.length()== 0){
+        if( isEmpty( json)){
 
             return null;
         }

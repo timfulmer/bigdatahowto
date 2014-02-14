@@ -3,6 +3,7 @@ package info.bigdatahowto.core;
 import org.junit.Before;
 import org.junit.Test;
 
+import java.util.Date;
 import java.util.HashMap;
 import java.util.Map;
 import java.util.UUID;
@@ -60,7 +61,7 @@ public class ResourceTest {
     }
 
     @Test
-    public void testStore(){
+    public void testPut() throws InterruptedException {
 
         final String testKey= "test-key";
         AggregateRoot aggregateRoot= new AggregateRoot() {
@@ -69,7 +70,11 @@ public class ResourceTest {
                 return testKey;
             }
         };
+        Date modifiedDate= aggregateRoot.getModifiedDate();
+        Thread.sleep( 1);
         this.resource.put(aggregateRoot);
+        assert modifiedDate.before( aggregateRoot.getModifiedDate()):
+                "Resource.put is not updating AggregateRoot.modifiedDate";
 
         String value= String.format(
                 "{\"uuid\":\"%s\",\"creationDate\":%s,\"modifiedDate\":%s}",
@@ -82,7 +87,24 @@ public class ResourceTest {
     }
 
     @Test( expected = RuntimeException.class)
-    public void testStore_Exception(){
+    public void testPut_JsonException() throws InterruptedException {
+
+        final String testKey= "test-key";
+        AggregateRoot aggregateRoot= new AggregateRoot() {
+            @Override
+            public String resourceKey() {
+                return testKey;
+            }
+            @Override
+            public Date getCreationDate(){
+                throw new UnsupportedOperationException();
+            }
+        };
+        this.resource.put(aggregateRoot);
+    }
+
+    @Test( expected = RuntimeException.class)
+    public void testPut_Exception(){
 
         final String testKey= "test-key";
         AggregateRoot aggregateRoot= new AggregateRoot() {
@@ -126,9 +148,81 @@ public class ResourceTest {
     public void testGet(){
 
         Message message= fakeMessage();
-        this.resource.put( message);
+        this.resource.put(message);
         Message result= this.resource.get( message);
         assert message.equals( result):
                 "Resource.get is not calling Resource.read correctly.";
+    }
+
+    @Test( expected = RuntimeException.class)
+    public void testGet_BadReads(){
+
+        this.resource= new Resource(RESOURCE_NAME) {
+            @Override
+            public void write(String key, String value) {
+                hackery.put(key,value);
+            }
+
+            @Override
+            public String read(String key) {
+                return null;
+            }
+
+            @Override
+            public boolean remove(String key) {
+                return true;
+            }
+        };
+        Message result= this.resource.get( fakeMessage());
+        assert result== null:
+                "Resource.get is not handling null read correctly.";
+
+        this.resource= new Resource(RESOURCE_NAME) {
+            @Override
+            public void write(String key, String value) {
+                hackery.put(key,value);
+            }
+
+            @Override
+            public String read(String key) {
+                return "dummy-json";
+            }
+
+            @Override
+            public boolean remove(String key) {
+                return true;
+            }
+        };
+        this.resource.get( fakeMessage());
+    }
+
+    @Test( expected = IllegalStateException.class)
+    public void testDelete(){
+
+        Message message= fakeMessage();
+        this.resource.put(message);
+
+        Message result= this.resource.delete( message);
+        assert result!= null: "Resource.delete is not implemented correctly.";
+        assert message.equals( result):
+                "Resource.delete is not implemented correctly.";
+
+        this.resource= new Resource(RESOURCE_NAME) {
+            @Override
+            public void write(String key, String value) {
+                hackery.put(key,value);
+            }
+
+            @Override
+            public String read(String key) {
+                return hackery.get(key);
+            }
+
+            @Override
+            public boolean remove(String key) {
+                return false;
+            }
+        };
+        this.resource.delete( message);
     }
 }
