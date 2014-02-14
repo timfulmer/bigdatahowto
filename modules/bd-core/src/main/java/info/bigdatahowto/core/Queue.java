@@ -198,7 +198,7 @@ public abstract class Queue {
         private KeyTimeout() {this.creation = new Date();}
         private boolean valid(){
             Calendar timeout= GregorianCalendar.getInstance();
-            timeout.add(Calendar.MINUTE, 5);
+            timeout.add(Calendar.MINUTE, -5);
             return this.creation.before( timeout.getTime());
         }
     }
