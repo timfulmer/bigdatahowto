@@ -79,7 +79,6 @@ public abstract class Resource {
 
         try {
 
-            // TODO: TestMe
             aggregateRoot.setModifiedDate( new Date());
             String json= this.objectMapper.writeValueAsString( aggregateRoot);
             this.write(aggregateRoot.resourceKey(), json);

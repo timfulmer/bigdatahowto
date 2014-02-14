@@ -33,7 +33,6 @@ public class JavaScriptProcessor extends Processor {
 
     /**
      * Applies behavior to data defined in a message.
-     * TODO: Handle Get and Delete cases.
      *
      * @param message Message containing behavior and data.
      * @return Results of processing.
