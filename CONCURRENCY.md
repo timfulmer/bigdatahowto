@@ -219,7 +219,8 @@ add the loop in, let Play recompile and
 hot deploy the loop version, and notice the network throughput to s3 drop by 50%
 or so.
 
-Essentially what we've done is said, "It is going to take X time to process N
+Back to the performanc issue, essentially what we've done is said, "It is going
+to take X time to process N
 messages for key K.  You can ask as many times as you want, but it will still
 take that long."  Which separates the impact of how long it takes to process a
 message from how many requests for message processing are happening.
@@ -263,7 +264,7 @@ Requests per second:    68.40 [#/sec] (mean)
 Time per request:       14.621 [ms] (mean, across all concurrent requests)
 ```
 
-Gotta love AWS for scaling.
+Gotta love AWS for scaling up.
 
 ##SQSQueue
 
