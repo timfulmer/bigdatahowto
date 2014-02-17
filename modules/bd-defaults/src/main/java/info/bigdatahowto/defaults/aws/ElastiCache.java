@@ -29,7 +29,7 @@ public class ElastiCache implements Cache {
         try {
 
             this.memcachedClient= new MemcachedClient(
-                    new AmazonClient().getElastiCacheLocation());
+                    new BdProperties().getElastiCacheLocation());
             this.transcoder= new Transcoder<String>() {
                 private SerializingTranscoder serializingTranscoder=
                         new SerializingTranscoder();

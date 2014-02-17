@@ -36,7 +36,7 @@ public class S3Resource extends Resource {
         super("s3");
 
         this.amazonS3= new AmazonS3Client(
-                new AmazonClient().getAwsCredentials("aws.s3.accessKeyId",
+                new BdProperties().getAwsCredentials("aws.s3.accessKeyId",
                         "aws.s3.secretKey"));
         this.setBucketName( DEFAULT_BUCKET);
     }

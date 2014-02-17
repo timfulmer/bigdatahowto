@@ -41,7 +41,7 @@ public class SqsQueue extends Queue {
         super(resource, cache);
 
         this.amazonSQS= new AmazonSQSClient(
-                new AmazonClient().getAwsCredentials("aws.sqs.accessKeyId",
+                new BdProperties().getAwsCredentials("aws.sqs.accessKeyId",
                         "aws.sqs.secretKey"));
         try{
 
