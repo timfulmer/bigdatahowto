@@ -5,11 +5,12 @@ import com.amazonaws.services.sqs.AmazonSQSClient;
 import com.amazonaws.services.sqs.model.Message;
 import com.amazonaws.services.sqs.model.QueueDoesNotExistException;
 import com.amazonaws.services.sqs.model.ReceiveMessageResult;
+import info.bigdatahowto.core.Cache;
 import info.bigdatahowto.core.Queue;
 import info.bigdatahowto.core.Resource;
 
+import java.util.List;
 import java.util.UUID;
-import java.util.logging.Level;
 import java.util.logging.Logger;
 
 import static org.apache.commons.collections.CollectionUtils.isEmpty;
@@ -22,7 +23,7 @@ import static org.apache.commons.collections.CollectionUtils.isEmpty;
 public class SqsQueue extends Queue {
 
     private static final String DEFAULT_QUEUE_NAME= "bd-sqs1-useast1";
-    private static final int DEFAULT_VISIBILITY_TIMEOUT= 5*60;
+    private static final int DEFAULT_VISIBILITY_TIMEOUT= 30;
 
     private transient Logger logger= Logger.getLogger(
             this.getClass().getName());
@@ -30,14 +31,14 @@ public class SqsQueue extends Queue {
     private AmazonSQS amazonSQS;
     private String queueUrl;
 
-    public SqsQueue(Resource resource) {
+    public SqsQueue(Resource resource, Cache cache) {
 
-        this( resource, DEFAULT_QUEUE_NAME);
+        this( resource, cache, DEFAULT_QUEUE_NAME);
     }
 
-    public SqsQueue(Resource resource, String queueName) {
+    public SqsQueue(Resource resource, Cache cache, String queueName) {
 
-        super(resource);
+        super(resource, cache);
 
         this.amazonSQS= new AmazonSQSClient(
                 new AmazonClient().getAwsCredentials("aws.sqs.accessKeyId",
@@ -108,24 +109,18 @@ public class SqsQueue extends Queue {
 
         super.clear();
 
-        this.amazonSQS.deleteQueue( this.queueUrl);
-        // tf - To get around this fun:
-        //  com.amazonaws.services.sqs.model.QueueDeletedRecentlyException:
-        //  Status Code: 400, AWS Service: AmazonSQS, AWS Request ID:
-        //  5cdfd565-a2cf-5337-bcf4-9e1280a74b87, AWS Error Code:
-        //  AWS.SimpleQueueService.QueueDeletedRecently, AWS Error Message:
-        //  You must wait 60 seconds after deleting a queue before you can
-        //  create another with the same name.
-        try {
-            Thread.sleep( 61000);
-        } catch (InterruptedException e) {
+        boolean hadMessages;
+        do{
 
-            String msg = String.format("Could not sleep.");
-            this.logger.log(Level.SEVERE, msg, e);
+            ReceiveMessageResult receiveMessageResult=
+                    this.amazonSQS.receiveMessage( this.queueUrl);
+            List<Message> messages= receiveMessageResult.getMessages();
+            hadMessages= !isEmpty( messages);
+            for( Message message: messages){
 
-            throw new RuntimeException(msg, e);
-        }
-        this.queueUrl= this.amazonSQS.createQueue(
-                DEFAULT_QUEUE_NAME).getQueueUrl();
+                this.amazonSQS.deleteMessage( this.queueUrl,
+                        message.getReceiptHandle());
+            }
+        }while( hadMessages);
     }
 }

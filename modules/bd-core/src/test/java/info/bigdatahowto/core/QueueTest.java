@@ -19,14 +19,16 @@ public class QueueTest {
     private final Set<UUID> jobs= new HashSet<>();
 
     private Resource resourceMock;
+    private Cache cacheMock;
     private Queue queue;
 
     @Before
     public void before(){
 
         this.resourceMock= mock( Resource.class);
+        this.cacheMock= mock( Cache.class);
 
-        this.queue= new Queue(this.resourceMock) {
+        this.queue= new Queue(this.resourceMock, this.cacheMock) {
             @Override
             protected void write(UUID uuid) {
                 jobs.add(uuid);
@@ -60,7 +62,11 @@ public class QueueTest {
         job.setUuid( popUuid());
         job.setState(JobState.Queued);
         when(this.resourceMock.get( job)).thenReturn( job);
+        when(this.cacheMock.put(message.getKey(), message.getKey())).thenReturn(
+                true);
+
         Job result= this.queue.pop();
+        assert result!= null: "Queue.push is not writing job correctly.";
         assert result.getUuid().equals(job.getUuid()):
                 "Queue.push is not writing job correctly.";
         assert JobState.Processing== job.getState():
@@ -114,7 +120,11 @@ public class QueueTest {
         job2.setState(JobState.Queued);
         when(this.resourceMock.get( any(Job.class))).thenReturn( job1, job2,
                 job2);
+        when(this.cacheMock.put(message.getKey(), message.getKey())).thenReturn(
+                true, false, true);
+
         Job result= this.queue.pop();
+        assert result!= null: "Queue.push is not writing job correctly.";
         assert result.getUuid().equals(job1.getUuid()):
                 "Queue.push is not writing job correctly.";
         assert JobState.Processing== job1.getState():

@@ -186,7 +186,7 @@ Here are our reqs so far for a `Message` instance:
 
 Notice how `persist`, `delete`, `get` and `error` all refer to behavior
 associated with actions on the system?  And `options` is a bag of key-value
-pairs.  Let's make both of these items maps of strings to give us some
+pairs.  Let's make both of these items maps to give us some
 extensibility, and add some simple asserts to keep coverage up:
 
 ```
@@ -539,7 +539,7 @@ Gradle build, check, moving on.
 We'll want to push messages into the queue, pop messages out of the queue, and
 delete messages.  We also want `Queue` to be extensible, so we can implement
 specific queuing technologies later.  `Queue` is responsible for persisting the
-messages it's processing to resources too.  All of which is a great excuse to
+messages it's processing to a resource too.  All of which is a great excuse to
 introduce Mockito!  Let's add a bd-core/build.gradle file containing:
 
 ```
@@ -549,7 +549,8 @@ dependencies {
 }
 ```
 
-Here's a test case documenting the `Queue` class.  `Queue` is an abstract class
+And here's a test case documenting the `Queue` class.  `Queue` is an abstract
+class
 to capture common queuing code.  You can see we're simply
 extending the abstract `Queue` class with an anonymous inner class for test.
 This is a pattern used below as well.

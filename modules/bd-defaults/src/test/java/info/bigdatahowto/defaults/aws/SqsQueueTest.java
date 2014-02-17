@@ -2,6 +2,7 @@ package info.bigdatahowto.defaults.aws;
 
 import info.bigdatahowto.core.Queue;
 import info.bigdatahowto.defaults.FileResource;
+import info.bigdatahowto.defaults.InMemoryCache;
 import org.junit.Before;
 import org.junit.Test;
 
@@ -17,7 +18,7 @@ public class SqsQueueTest {
     @Before
     public void before(){
 
-        this.sqsQueue= new SqsQueue( new FileResource());
+        this.sqsQueue= new SqsQueue( new FileResource(), new InMemoryCache());
         this.sqsQueue.clear();
     }
 

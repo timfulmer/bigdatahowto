@@ -22,6 +22,7 @@ public class JavaScriptProcessor extends Processor {
             this.getClass().getName());
 
     private JavaScriptProcessorTemplate javaScriptProcessorTemplate;
+    private ScriptEngine scriptEngine;
 
     public JavaScriptProcessor(Queue queue, ResourceRoadie resourceRoadie) {
 
@@ -29,6 +30,8 @@ public class JavaScriptProcessor extends Processor {
 
         this.javaScriptProcessorTemplate=
                 new DefaultJavaScriptProcessorTemplate();
+        this.scriptEngine= new ScriptEngineManager().getEngineByName(
+                "JavaScript");
     }
 
     /**
@@ -99,16 +102,14 @@ public class JavaScriptProcessor extends Processor {
     private ProcessingResult getProcessingResult(
             Message message, String script, Bindings bindings) {
 
-        ScriptEngineManager factory = new ScriptEngineManager();
-        ScriptEngine engine = factory.getEngineByName("JavaScript");
         bindings.put( "key", message.getMessageKey().getUserKey());
         ProcessingResult processingResult= new ProcessingResult();
         bindings.put( "processingResult", processingResult);
         StringWriter errorWriter= new StringWriter();
-        engine.getContext().setErrorWriter( errorWriter);
+        this.scriptEngine.getContext().setErrorWriter( errorWriter);
         try {
 
-            engine.eval(script, bindings);
+            this.scriptEngine.eval(script, bindings);
         } catch (ScriptException e) {
 
             String msg = String.format("Could not evaluate JS script '%s', " +

@@ -4,3 +4,6 @@ aws.s3.secretKey=<secret-key>
 
 aws.sqs.accessKeyId=<access-key-id>
 aws.sqs.secretKey=<secret-key>
+
+aws.elasticache.host=<elasticache-host>
+aws.elasticache.port=<elasticache-port>

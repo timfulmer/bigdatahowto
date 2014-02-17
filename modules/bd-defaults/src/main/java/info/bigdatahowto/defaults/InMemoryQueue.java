@@ -1,5 +1,6 @@
 package info.bigdatahowto.defaults;
 
+import info.bigdatahowto.core.Cache;
 import info.bigdatahowto.core.Queue;
 import info.bigdatahowto.core.Resource;
 
@@ -23,12 +24,12 @@ public class InMemoryQueue extends Queue {
 
     public InMemoryQueue() {
 
-        this(null);
+        this(new FileResource(),new InMemoryCache());
     }
 
-    public InMemoryQueue( Resource resource) {
+    public InMemoryQueue( Resource resource, Cache cache) {
 
-        super( resource);
+        super( resource, cache);
 
         this.head= new ConcurrentLinkedQueue<>();
         this.tail= new ConcurrentLinkedQueue<>();

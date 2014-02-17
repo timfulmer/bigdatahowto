@@ -2,6 +2,7 @@ package info.bigdatahowto.api;
 
 import info.bigdatahowto.core.*;
 import info.bigdatahowto.defaults.*;
+import info.bigdatahowto.defaults.aws.ElastiCache;
 import info.bigdatahowto.defaults.aws.S3Resource;
 import info.bigdatahowto.defaults.aws.SqsQueue;
 import info.bigdatahowto.defaults.js.JavaScriptProcessor;
@@ -37,7 +38,7 @@ public class Bd {
 
             Resource resource= new S3Resource();
             UserRoadie userRoadie= new UserRoadie( resource);
-            Queue queue= new SqsQueue( resource);
+            Queue queue= new SqsQueue( resource, new ElastiCache());
             productionInstance= new Bd(resource, new BdAuthenticator(
                     userRoadie), userRoadie, queue);
         }

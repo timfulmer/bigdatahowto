@@ -43,7 +43,7 @@ a fallback.
 
 JSON is used for the interface.  This supports Apache Base load testing, and
 makes
-integrating with web technologies easy.  Interface is generalized, allowing
+integrating with web technologies easy.  The interface is generalized, allowing
 functions to be associated with data requests.
 
 Our use case has the following actions:
@@ -110,8 +110,8 @@ of three JARs.  The three packages are:
 
 ####Core
 
- - Resource interface to external system;
- - Queue interface for SQS;
+ - Resource interface to external systems;
+ - Queue interface, eventually implemented with SQS;
  - Message object: {key[,value][,persist][,delete][,get][,error][,options]};
  - Job state machine;
  - JavaScript runtime;
@@ -131,7 +131,6 @@ Limitations:
 
 Options:
 
- - Always perform function (false);
  - Private value (false);
 
 ####Defaults
@@ -139,7 +138,7 @@ Options:
 We'll be building the system above in iterations.  Initial development is scoped
 to implementing an in memory queue, a JavaScript processor, an local file system
 resource
-and an always allow Authenticator.  SQS, S3, ElastiCache, SpringSecurity and
+and an always allow Authenticator.  SQS, S3, ElastiCache and
 potentially other technologies can be
 added once we've built up a test environment and can measure their impact on
 the system.

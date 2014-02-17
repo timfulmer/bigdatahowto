@@ -18,21 +18,19 @@ public abstract class Queue {
      */
     protected Resource resource;
 
-    /**
-     * TODO: Use a cache instead of hash map with timeout.
-     */
-    private Map<String,KeyTimeout> keys= new HashMap<>();
+    private Cache cache;
 
     protected Queue() {
 
         super();
     }
 
-    protected Queue(Resource resource) {
+    protected Queue(Resource resource, Cache cache) {
 
         this();
 
         this.resource = resource;
+        this.cache= cache;
     }
 
     /**
@@ -76,6 +74,7 @@ public abstract class Queue {
 
         Job job;
         do{
+
             ResultTuple resultTuple= this.read();
             if( resultTuple== null){
 
@@ -89,6 +88,10 @@ public abstract class Queue {
         }while( job.getState()!= JobState.Queued);
         if( this.alreadyProcessingKey(job.getMessageKey().getKey())){
 
+            this.logger.info( String.format( "Message with key '%s' already " +
+                    "being processed, returning null.",
+                    job.getMessageKey().getKey()));
+
             return null;
         }
         job.toProcessing();
@@ -100,20 +103,12 @@ public abstract class Queue {
 
     private synchronized boolean alreadyProcessingKey(String key){
 
-        KeyTimeout timeout= this.keys.get(key);
-        if( timeout== null || !timeout.valid()){
-
-            this.keys.put( key, new KeyTimeout());
-
-            return false;
-        }
-
-        return true;
+        return !this.cache.put( key, key);
     }
 
     public void complete(Job job){
 
-        this.keys.remove( job.getMessageKey().getKey());
+        this.cache.remove( job.getMessageKey().getKey());
         job.toComplete();
         job.setStatus("Job processing complete.");
         this.resource.put(job);
@@ -145,7 +140,7 @@ public abstract class Queue {
      */
     public void error( Job job, String msg){
 
-        this.keys.remove( job.getMessageKey().getKey());
+        this.cache.remove( job.getMessageKey().getKey());
         if( msg== null){
 
             msg= "Job processing encountered an unrecoverable error.  " +
@@ -162,7 +157,7 @@ public abstract class Queue {
      */
     public void clear(){
 
-        this.keys.clear();
+        this.cache.clear();
     }
 
     /**
@@ -188,19 +183,12 @@ public abstract class Queue {
      */
     protected abstract void delete( String identifier);
 
-    @javax.annotation.Resource
     public void setResource(Resource resource) {
         this.resource = resource;
     }
 
-    private class KeyTimeout{
-        private Date creation;
-        private KeyTimeout() {this.creation = new Date();}
-        private boolean valid(){
-            Calendar timeout= GregorianCalendar.getInstance();
-            timeout.add(Calendar.MINUTE, -5);
-            return timeout.getTime().before( this.creation);
-        }
+    public void setCache(Cache cache) {
+        this.cache = cache;
     }
 
     public static class ResultTuple{

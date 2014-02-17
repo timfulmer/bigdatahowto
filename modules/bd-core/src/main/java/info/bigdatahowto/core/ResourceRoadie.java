@@ -52,6 +52,11 @@ public class ResourceRoadie {
      * provisioned for authentication.  Message's behavior is updated with
      * new behavior.
      *
+     * !!WARNING: Potential data loss with concurrent processing and writes to
+     * the same message!!
+     *
+     * TODO: Introduce retry with exponential backoff up to a short timeout.
+     *
      * @param message New message to store.
      * @param behavior New behavior.
      * @param authentication Authenticates access to messages.

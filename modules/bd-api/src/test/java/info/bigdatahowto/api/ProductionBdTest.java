@@ -6,6 +6,7 @@ import info.bigdatahowto.core.JobState;
 import info.bigdatahowto.defaults.aws.S3Resource;
 import org.junit.After;
 import org.junit.Before;
+import org.junit.Ignore;
 import org.junit.Test;
 
 import java.io.IOException;
@@ -16,6 +17,7 @@ import java.util.UUID;
  */
 public class ProductionBdTest {
 
+    private static final int SQS_SLEEP_TIME= 125;
     private static final String BEHAVIOR= "function(env,word,meta){\n" +
             "        // Input validation.\n" +
             "        if(!word || word.length>7) return false;\n" +
@@ -145,8 +147,8 @@ public class ProductionBdTest {
                 BehaviorType.Persist.toString(), authentication);
         for( int i= 0; i< 4; i++){
 
+            Thread.sleep( SQS_SLEEP_TIME);
             this.bd.processJob();
-            Thread.sleep( 500);
         }
 
         Integer count= ((Double) this.bd.queryMetaData( key, "count",
@@ -154,12 +156,11 @@ public class ProductionBdTest {
         assert count.equals( 2): "Count is not incrementing.";
 
         // tf - Check on spawned jobs.
-        for( int i= 0; i< 24; i++){
+        for( int i= 0; i< 28; i++){
 
+            Thread.sleep( SQS_SLEEP_TIME);
             this.bd.processJob();
-            Thread.sleep( 500);
         }
-
         count= ((Double) this.bd.queryMetaData( makeKey( "tes"),
                 "count", authentication)).intValue();
         assert count.equals( 2): "Count is not incrementing.";
@@ -330,7 +331,9 @@ public class ProductionBdTest {
                 "Bd.queryMetaData is not implemented correctly.";
     }
 
-    private void clean() throws IOException {
+    @Test
+    @Ignore
+    public void clean() throws IOException {
 
         // tf - Clean any artifacts from previous runs.
         new S3Resource().clean();
