@@ -30,7 +30,7 @@ Please see the demo below.
 Here's a demo app, running on the BigDataFramework.  Type in some letters
 to see how many times that letter combination has been entered to the system.
 Submit your words to the system, where they will be counted.  See the words
-other users have entered to the system.
+other users are entering to the system.
 
 We'll walk through the steps to build the demo below, as well as walking through
 the features provided by the BigDataFramework.
