@@ -21,8 +21,6 @@ BigDataFramework is happy to offer the following features:
  - Integration with a Google AppEngine & other infrastructures, notifications,
  and more features coming soon!
 
-<insert demo here>
-
 ##Demo
 
 Here's a little demo app, running on the BigDataFramework.  Type in some letters
@@ -35,7 +33,7 @@ the features provided by the BigDataFramework.
 
 The source for this demo can be found here:
 
-<url to source in github.>
+<https://github.com/timfulmer/bigdatahowto/blob/master/htdocs/demo.html>
 
 ##Updates
 
