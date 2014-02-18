@@ -129,7 +129,7 @@
     <!-- Bootstrap core JavaScript
     ================================================== -->
     <!-- Placed at the end of the document so the pages load faster -->
-    <script src="js/jquery-2.1.0.min.js"></script>
+    <script src="js/jquery-1.10.2.js"></script>
     <script src="js/jquery-ui-1.10.4.custom.min.js"></script>
     <script src="js/bootstrap.min.js"></script>
     <script src="js/marked.js"></script>
@@ -178,6 +178,16 @@
                         if( element.nodeName== 'H2'
                                 || element.nodeName== 'H3'){
                             if(divId=='jumbotronDiv'){
+                                $("#"+divId).append("<div id='bd-demo'> \
+                                        <div> \
+                                <span id='bd-latest2'>&nbsp;</span><br/> \
+                                <span id='bd-latest1'>&nbsp;</span><br/> \
+                                <span id='bd-latest0'>&nbsp;</span><br/> \
+                                </div> \
+                                <input id='bd-word' type='text' placeholder='Please type some letters.' size='25' onkeypress='chkSendWord(event)'/> \
+                                        <button onclick='sendWord()'>Doink!</button> \
+                                </div>");
+                                doink();
                                 $("#"+divId).append("<div style='text-align: center;'><ul class='pagination'>"+
                                         "<li><a href='#'>&laquo;</a></li>"+
                                         "<li><a href='#'>1</a></li>"+
