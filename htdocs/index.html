@@ -200,7 +200,7 @@
                                     element.firstChild.nodeValue+ "</a></li>");
                         }
                         $("#"+divId).append(element);
-                        if(element.firstChild.nodeValue== "Demo"){
+                        if(element.nodeName== 'H2' && element.firstChild.nodeValue== 'Demo'){
                             $("#"+divId).append("<div id='bd-demo'> \
                                         <div> \
                                 <span id='bd-latest2'>&nbsp;</span><br/> \
