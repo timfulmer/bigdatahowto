@@ -66,8 +66,7 @@
                     <div class="navbar-header">
                         <a class="navbar-brand" href="#"><img src="favicon-32x32.png"/>BigDataHowto</a>
                     </div>
-                    <ul class="nav nav-pills nav-stacked">
-                        <li id="aboutLi"><a href="#about">About the Author</a></li>
+                    <ul id="nav" class="nav nav-pills nav-stacked">
                     </ul>
                     <div>
                         <div class="fb-like" data-href="https://bigdatahowto.info/" data-layout="button_count" data-action="like" data-show-faces="true" data-share="true"></div>
@@ -98,7 +97,7 @@
                 </nav>
             </div>
             <div class="col-md-9">
-                <div class="well">
+                <div id="commentDiv" class="well">
                     <!-- START: Livefyre Embed -->
                     <div id="livefyre-comments"></div>
                     <script type="text/javascript" src="http://zor.livefyre.com/wjs/v3.0/javascripts/livefyre.js"></script>
@@ -129,7 +128,7 @@
     <!-- Bootstrap core JavaScript
     ================================================== -->
     <!-- Placed at the end of the document so the pages load faster -->
-    <script src="js/jquery-1.10.2.js"></script>
+    <script src="js/jquery-2.1.0.min.js"></script>
     <script src="js/jquery-ui-1.10.4.custom.min.js"></script>
     <script src="js/bootstrap.min.js"></script>
     <script src="js/marked.js"></script>
@@ -173,7 +172,7 @@
                     var markdownDom= $.parseHTML(markdownHtml);
                     var divId= "jumbotronDiv";
                     $("<div id='"+divId +"' class='jumbotron added'></div>"
-                    ).insertBefore("#aboutDiv");
+                    ).insertBefore("#commentDiv");
                     markdownDom.forEach(function(element){
                         if( element.nodeName== 'H2'
                                 || element.nodeName== 'H3'){
@@ -204,12 +203,11 @@
                             divId= element.firstChild.nodeValue.replace(
                                     /\W/g, '');
                             $("<div id='"+ divId+ "' class='well added'></div>"
-                            ).insertBefore("#aboutDiv");
+                            ).insertBefore("#commentDiv");
                             $("#"+divId).append(
                                     "<a name='"+ divId+ "Anchor'></a>");
-                            $("<li class='added'><a href='#"+ divId+ "Anchor'>"+
-                                    element.firstChild.nodeValue+ "</a></li>"
-                            ).insertBefore("#aboutLi");
+                            $("#nav").append("<li class='added'><a href='#"+ divId+ "Anchor'>"+
+                                    element.firstChild.nodeValue+ "</a></li>");
                         }
                         $("#"+divId).append(element);
                     });
