@@ -23,6 +23,8 @@ BigDataFramework is happy to offer the following features:
  - Integration with a Google AppEngine & other infrastructure, notifications,
  and more features coming soon!
 
+Please see the demo below.
+
 ##Demo
 
 Here's a demo app, running on the BigDataFramework.  Type in some letters
