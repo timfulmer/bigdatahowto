@@ -210,7 +210,7 @@ will skip job monitoring.
 We clear the text field for a bit of immediate user feedback, and after a bit
 the newly added word is displayed.
 
-#Latest
+##Latest
 
 Showing just one word at a time doesn't give a feel for the messages moving
 through the system.  Let's put in a few more slots:
