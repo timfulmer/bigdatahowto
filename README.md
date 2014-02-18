@@ -1,7 +1,7 @@
 #Big Data Framework
 
 Starting out as a howto illustrating some points on building a modern, scalable
-backend data architecture, BigDataHowto is now BigDataFramework!
+backend data architecture, BigDataHowto is now BigDataFramework.
 BigDataFramework is happy to offer the following features:
 
  - Clear separation of backend scaling concerns from your business;
@@ -16,14 +16,16 @@ BigDataFramework is happy to offer the following features:
 
  - Provides a simple way to do complex data calculations;
 
+ - Simplified authentication scheme;
+
  - Pluggable architecture, currently implemented on AWS;
 
- - Integration with a Google AppEngine & other infrastructures, notifications,
+ - Integration with a Google AppEngine & other infrastructure, notifications,
  and more features coming soon!
 
 ##Demo
 
-Here's a little demo app, running on the BigDataFramework.  Type in some letters
+Here's a demo app, running on the BigDataFramework.  Type in some letters
 to see how many times that letter combination has been entered to the system.
 Submit your words to the system, where they will be counted.  See the words
 other users have entered to the system.
@@ -45,18 +47,17 @@ is stored by the BigDataFramework using keys.  A key looks like
  - A resource name identifying the backing store used to persist the data;
  - A user context identifying the user who owns the data;
  - A string representing a unique name for the data;
- - A string representing the name of the property to access.
+ - A string representing the name of the property within the data to access.
 
 There is a test deployment at `http://bigdatahowto.info/bd/`, configured with no
 authentication and using s3 as the backing store.  Since there is no
 authentication, there are also no safe guards against random users making
-catastrophic changes to your data.  It also makes it much easier to start trying
-stuff out :)
+catastrophic changes to your data.  It also makes it much easier to demo :)
 
 The resource name part of our key is provided for us as part of the
 BigDataFramework configuration.  We do need to chose a context to keep our data
 separate from others' data.  We'll call this one `wordoink` for fun.  Since this
-key holds a sumary of the latest submission to the system,
+key holds a summary of the latest submission to the system,
 `/wordoink/latest/summary` seems like a good fit.
 
 We'll also need a div to show the results.  We're building this demo using
@@ -108,11 +109,11 @@ you'll see the last message submitted to the system.
 
 ##Submit Word
 
-Here's where the magic of the BigDataFramework comes in.  We POST a new word to
-the system, defining behavior to run on the server at the same time.  Since
-simply counting words is a bit simplistic, we'll count all word stems as well.
-And we need to update the latest record to get some output.  Here's a little
-JavaScript snippet to get this done on the server:
+Here's where the magic of the BigDataFramework comes in.  As we POST a new word
+to the system, we get to define behavior to run on the server at the same time.
+Since simply counting words is a bit simplistic, we'll count all word stems as
+well.  And we need to update the latest record to get some output.  Here's a
+little JavaScript snippet to get this done on the server:
 
 ```
 function(env,word,meta){
@@ -126,13 +127,6 @@ function(env,word,meta){
         // Operation successful, persist results.
         return true;
     }
-    // define updating latest
-    env.latestFunction= function(env,word,meta){
-        if(!meta.count) meta.count= 0;
-        meta.count++;
-        // Operation successful, persist results.
-        return true;
-    }
     // Set meta data for this word.
     if(!meta.count) meta.count= 0;
     meta.count++;
@@ -140,17 +134,21 @@ function(env,word,meta){
     var stems= [];
     for(var i=1; i<word.length;i++){
         stems.push({key:word.substring(0,i),
-                persist:env.persistFunction});
+            persist:env.persistFunction});
     }
-    // update latest record as well.
-    stems.push({key:"latest",meta:{word:word},persist:env.latestFunction});
+    // update latest record.
+    var latest= {};
+    latest.summary= {};
+    latest.summary.word= word;
+    latest.summary.count=meta.count;
+    stems.push({key:"latest",meta:latest});
     return stems;
 }
 ```
 
 You'll notice there can be two return types from a JavaScript function
 associated with a key on the system.  A boolean tells the system to persist the
-results of the function evaluation or not.  If a list of additional tuples is
+results of the function or not.  If a list of additional tuples is
 given, they are fed back through the system as additional messages.
 
 Backend behavior is now defined, let's setup the front end.  It's a simple text
@@ -207,8 +205,8 @@ with a job identifier, which can be used to query job processing status with a
 GET request to `http://bigdatahowto.info/bd/job/<identifier>`.  For this demo we
 will skip job monitoring.
 
-We clear the text field for a bit of immediate user feedback, and after a bit
-the newly added word is displayed.
+We clear the text field for a bit of immediate user feedback, and after a slight
+delay for the server to process, the newly added word is displayed.
 
 ##Latest
 
@@ -217,9 +215,9 @@ through the system.  Let's put in a few more slots:
 
 ```
 <div>
-    <span id="bd-latest2">&nbsp;</span><br/>
-    <span id="bd-latest1">&nbsp;</span><br/>
-    <span id="bd-latest0">&nbsp;</span><br/>
+    <span id="bd-latest2">...</span><br/>
+    <span id="bd-latest1">...</span><br/>
+    <span id="bd-latest0">...</span><br/>
 </div>
 ...
 var latest= [];

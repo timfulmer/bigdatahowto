@@ -13,6 +13,13 @@
     <!-- Bootstrap core CSS -->
     <link href="css/bootstrap.css" rel="stylesheet">
     <link href="css/jquery-ui-1.10.4.custom.min.css" rel="stylesheet">
+    <style>
+        .center {
+            float: none;
+            margin-left: auto;
+            margin-right: auto;
+        }
+    </style>
 
     <!-- HTML5 shim and Respond.js IE8 support of HTML5 elements and media queries -->
     <!--[if lt IE 9]>
@@ -56,14 +63,14 @@
         <div class="col-md-9">
             <div class="well">
 
-                <div id="bd-demo">
+                <div id="bd-demo" class="panel panel-body center" style="width: 290px">
                     <div>
-                        <span id="bd-latest2">&nbsp;</span><br/>
-                        <span id="bd-latest1">&nbsp;</span><br/>
-                        <span id="bd-latest0">&nbsp;</span><br/>
+                        <span id="bd-latest2">...</span><br/>
+                        <span id="bd-latest1">...</span><br/>
+                        <span id="bd-latest0">...</span><br/>
                     </div>
                     <input id="bd-word" type="text" placeholder="Please type some letters." size="25" onkeypress="chkSendWord(event)"/>
-                    <button onclick="sendWord()">Doink!</button>
+                    <button class="btn btn-primary" onclick="sendWord()">Doink!</button>
                 </div>
 
             </div>
