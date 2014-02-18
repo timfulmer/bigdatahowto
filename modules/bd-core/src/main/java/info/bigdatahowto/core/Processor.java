@@ -4,6 +4,7 @@ import java.util.UUID;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 
+import static org.apache.commons.collections.MapUtils.isEmpty;
 import static org.apache.commons.collections.CollectionUtils.isEmpty;
 
 /**
@@ -36,6 +37,7 @@ public abstract class Processor {
      * PLEASE NOTE: Jobs are retried a total of five times.  Any job
      * failing more than five times will be parked in Error state.
      */
+    @SuppressWarnings("unchecked")
     public void pullJob(){
 
         // tf - Pop a new job off the queue.
@@ -71,12 +73,9 @@ public abstract class Processor {
                 if( message.getBehavior().containsKey( BehaviorType.Error)){
 
                     processingResult= this.error( message, job.getTries());
-                    if( processingResult!= null
-                            && processingResult.isContinueProcessing()){
-
-                        job.toQueued();
-                    }
                 }
+
+                job.toQueued();
             }else{
 
                 this.queue.error( job);
@@ -110,12 +109,19 @@ public abstract class Processor {
             for(ProcessingResult.NewMessage newMessage:
                     processingResult.getMessages()){
 
-                Message m= this.resourceRoadie.storeMessage(
-                        new Message( newMessage.makeKey()), newMessage.behavior,
+                // TODO: Add test for new message meta data & null behavior.
+                Message m= new Message( newMessage.makeKey());
+                if( !isEmpty( newMessage.values)){
+                    m.getValues().putAll( newMessage.values);
+                }
+                m= this.resourceRoadie.storeMessage(m, newMessage.behavior,
                         job.getJobOwner());
-                this.queue.push(UUID.randomUUID(), m,
-                        newMessage.behavior.getBehaviorType(),
-                        job.getJobOwner());
+                if( newMessage.behavior!= null){
+
+                    this.queue.push(UUID.randomUUID(), m,
+                            newMessage.behavior.getBehaviorType(),
+                            job.getJobOwner());
+                }
             }
         }
 

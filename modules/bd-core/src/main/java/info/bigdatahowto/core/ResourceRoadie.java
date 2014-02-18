@@ -65,12 +65,14 @@ public class ResourceRoadie {
     public Message storeMessage(Message message, Behavior behavior,
                              String authentication) {
 
+        // TODO: Revisit null behavior handling.
+
         assert authentication!= null:
                 "Authentication cannot be null.";
 
         // tf - Merge behavior & values meta data for existing message.
         Message persistent= this.accessMessage( message, authentication,
-                behavior.getBehaviorType());
+                behavior== null ? BehaviorType.Persist : behavior.getBehaviorType());
         if( persistent== null){
 
             this.authenticator.provision( message, authentication);
@@ -80,7 +82,10 @@ public class ResourceRoadie {
             persistent.setSecure( message.isSecure());
             message= persistent;
         }
-        message.getBehavior().put( behavior.getBehaviorType(), behavior);
+        if( behavior!= null){
+
+            message.getBehavior().put( behavior.getBehaviorType(), behavior);
+        }
         this.updateMessage(message);
 
         return message;

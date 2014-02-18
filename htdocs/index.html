@@ -12,6 +12,7 @@
 
     <!-- Bootstrap core CSS -->
     <link href="css/bootstrap.css" rel="stylesheet">
+    <link href="css/jquery-ui-1.10.4.custom.min.css" rel="stylesheet">
 
     <!-- HTML5 shim and Respond.js IE8 support of HTML5 elements and media queries -->
     <!--[if lt IE 9]>
@@ -97,20 +98,6 @@
                 </nav>
             </div>
             <div class="col-md-9">
-                <div id="aboutDiv" class="well">
-                    <a id="about"></a><h3>About the Author</h3>
-                    <p>
-                        Tim Fulmer enjoys building large applications to scale, while understanding every
-                        large application starts out as a small one.  Tim has extensive experience providing
-                        technology leadership to early- and mid-stage startup companies, most recently
-                        <a href="http://www.thinkpassenger.com">Passenger</a> and
-                        <a href="http://www.acemetrix.com">AceMetrix</a>.
-                    </p>
-                    <p>
-                        Connect with Tim Fulmer on
-                        <a href="http://www.linkedin.com/in/timfulmer/">LinkedIn</a>
-                    </p>
-                </div>
                 <div class="well">
                     <!-- START: Livefyre Embed -->
                     <div id="livefyre-comments"></div>
@@ -143,6 +130,7 @@
     ================================================== -->
     <!-- Placed at the end of the document so the pages load faster -->
     <script src="js/jquery-2.1.0.min.js"></script>
+    <script src="js/jquery-ui-1.10.4.custom.min.js"></script>
     <script src="js/bootstrap.min.js"></script>
     <script src="js/marked.js"></script>
     <script src="js/sammy-latest.min.js"></script>
@@ -202,6 +190,16 @@
                                         "<li><a href='#/concurrency'>8</a></li>"+
                                         "<li><a href='#/concurrency'>&raquo;</a></li>"+
                                         "</ul></div>");
+                                $("#"+divId).append("<div id='bd-demo'> \
+                                        <div> \
+                                <span id='bd-latest2'>&nbsp;</span><br/> \
+                                <span id='bd-latest1'>&nbsp;</span><br/> \
+                                <span id='bd-latest0'>&nbsp;</span><br/> \
+                                </div> \
+                                <input id='bd-word' type='text' placeholder='Please type some letters.' size='25' onkeypress='chkSendWord(event)'/> \
+                                        <button onclick='sendWord()'>Doink!</button> \
+                                </div>");
+                                doink();
                             }
                             divId= element.firstChild.nodeValue.replace(
                                     /\W/g, '');
@@ -217,6 +215,104 @@
                     });
                 }
             });
+        }
+        function sendWord(){
+            $.ajax({
+                url: 'http://bigdatahowto.info/bd/data/wordoink/'+ $('#bd-word').val(),
+                type: 'POST',
+                contentType: 'text/plain',
+                processData: false,
+                data: 'function(env,word,meta){\n \
+                    // Input validation.\n \
+                    if(!word || word.length>7) return false;\n \
+                    // Define stem behavior.\n \
+                    env.persistFunction= function(env,word,meta){\n \
+                        // Update count returned from the GET request.\n \
+                        if(!meta.count) meta.count= 0;\n \
+                        meta.count++;\n \
+                        // Operation successful, persist results.\n \
+                        return true;\n \
+                    }\n \
+                    // Set meta data for this word.\n \
+                    if(!meta.count) meta.count= 0;\n \
+                    meta.count++;\n \
+                    // Decompose word into stems, run persistFunction on each one.\n \
+                    var stems= [];\n \
+                    for(var i=1; i<word.length;i++){\n \
+                        stems.push({key:word.substring(0,i),\n \
+                            persist:env.persistFunction});\n \
+                    }\n \
+                    // update latest record.\n \
+                    var latest= {};\n \
+                    latest.summary= {};\n \
+                    latest.summary.word= word;\n \
+                    latest.summary.count=meta.count;\n \
+                    stems.push({key:"latest",meta:latest});\n \
+                    return stems;\n \
+                }'
+            });
+            $('#bd-word').val(undefined);
+            $( '#bd-word' ).autocomplete( 'close' );
+        }
+        function chkSendWord(event){
+            if(event.charCode== 13){
+                sendWord();
+            }
+        }
+        function latestSuccess(data){
+            if(!data) updateDiv('No data available');
+            else updateDiv(data.word+ ' ('+ data.count+ ')');
+        }
+        var latest= [];
+        function updateDiv(data){
+            if(latest.indexOf(data)== -1){
+                latest.splice(0,0,data);
+                if( latest.length>3) latest.pop();
+                latest.forEach(function(ld,i){
+                    $('#bd-latest'+ i).html(ld);
+                })
+            }
+        }
+        function doink(){
+            $.ajax({
+                url: 'http://bigdatahowto.info/bd/data/wordoink/latest/summary',
+                success: latestSuccess,
+                dataType: 'json',
+                error: function(xhr,error){
+                    alert("here");
+                    console.log(error);
+                }
+            });
+            (function poll() {
+                setTimeout(function () {
+                    $.ajax({
+                        type: 'GET',
+                        dataType: 'json',
+                        url: 'http://bigdatahowto.info/bd/data/wordoink/latest/summary',
+                        success: latestSuccess,
+                        complete: poll
+                    });
+                }, 5000);
+            })();
+            $('#bd-word').autocomplete({
+                source: function( req, res){
+                    $.ajax({
+                        type: 'GET',
+                        dataType: 'json',
+                        url: 'http://bigdatahowto.info/bd/data/wordoink/'+
+                                req.term+ '/count',
+                        success: function(data){
+                            var tuple= [];
+                            tuple.push( req.term+ ' ('+ data+ ')');
+                            res(tuple);
+                        }
+                    });
+                },
+                select: function(event,ui){
+                    return false;
+                }
+            });
+            $('#bd-word').focus();
         }
     </script>
 </body>

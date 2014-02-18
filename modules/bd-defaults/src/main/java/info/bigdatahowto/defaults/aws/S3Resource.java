@@ -14,6 +14,7 @@ import java.util.List;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 
+import static org.apache.commons.lang3.StringUtils.isEmpty;
 import static org.apache.commons.collections.CollectionUtils.isEmpty;
 
 /**
@@ -35,10 +36,20 @@ public class S3Resource extends Resource {
 
         super("s3");
 
+        BdProperties bdProperties= new BdProperties();
         this.amazonS3= new AmazonS3Client(
-                new BdProperties().getAwsCredentials("aws.s3.accessKeyId",
+                bdProperties.getAwsCredentials("aws.s3.accessKeyId",
                         "aws.s3.secretKey"));
-        this.setBucketName( DEFAULT_BUCKET);
+        String bucketName= bdProperties.getBucketName();
+        if( isEmpty( bucketName)){
+
+            bucketName= DEFAULT_BUCKET;
+        }
+        if( !this.amazonS3.doesBucketExist( bucketName)){
+
+            this.amazonS3.createBucket( bucketName);
+        }
+        this.setBucketName( bucketName);
     }
 
     /**

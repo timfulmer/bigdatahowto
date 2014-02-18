@@ -1,6 +1,7 @@
 package info.bigdatahowto.defaults.aws;
 
 import org.junit.Before;
+import org.junit.Ignore;
 import org.junit.Test;
 
 /**
@@ -35,6 +36,7 @@ public class S3ResourceTest {
     }
 
     @Test
+    @Ignore
     public void testClean(){
 
         new S3Resource().clean();

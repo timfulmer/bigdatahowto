@@ -143,8 +143,8 @@ public class DefaultBdTest {
         this.bd.processJob();
         this.bd.processJob();
 
-        Integer count= ((Double) this.bd.queryMetaData( key, "count",
-                authentication)).intValue();
+        Integer count= ((Double)Double.parseDouble(this.bd.queryMetaData( key,
+                "count", authentication))).intValue();
         assert count.equals( 2): "Count is not incrementing.";
 
         // tf - Check on spawned jobs.
@@ -153,17 +153,17 @@ public class DefaultBdTest {
             this.bd.processJob();
         }
 
-        count= ((Double) this.bd.queryMetaData( makeKey( "tes"),
-                "count", authentication)).intValue();
+        count= ((Double) Double.parseDouble(this.bd.queryMetaData(
+                makeKey( "tes"), "count", authentication))).intValue();
         assert count.equals( 2): "Count is not incrementing.";
     }
 
     public void assertCount(Object object) {
         assert object!= null:
                 "Bd.queryMetaData is not implemented correctly.";
-        assert object instanceof Double:
+        assert object instanceof String:
                 "Bd.queryMetaData is not implemented correctly.";
-        assert (object).equals( 1.0):
+        assert (object).equals( "1.0"):
                 "Bd.queryMetaData is not implemented correctly.";
     }
 

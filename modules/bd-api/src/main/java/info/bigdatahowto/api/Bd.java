@@ -1,13 +1,20 @@
 package info.bigdatahowto.api;
 
+import com.fasterxml.jackson.core.JsonProcessingException;
+import com.fasterxml.jackson.databind.ObjectMapper;
 import info.bigdatahowto.core.*;
-import info.bigdatahowto.defaults.*;
+import info.bigdatahowto.defaults.AlwaysAllowAuthenticator;
+import info.bigdatahowto.defaults.BdAuthenticator;
+import info.bigdatahowto.defaults.FileResource;
+import info.bigdatahowto.defaults.InMemoryQueue;
 import info.bigdatahowto.defaults.aws.ElastiCache;
 import info.bigdatahowto.defaults.aws.S3Resource;
 import info.bigdatahowto.defaults.aws.SqsQueue;
 import info.bigdatahowto.defaults.js.JavaScriptProcessor;
 
 import java.util.UUID;
+import java.util.logging.Level;
+import java.util.logging.Logger;
 
 import static org.apache.commons.collections.MapUtils.isEmpty;
 
@@ -45,6 +52,10 @@ public class Bd {
 
         return productionInstance;
     }
+
+    private transient ObjectMapper objectMapper= new ObjectMapper();
+    private transient Logger logger= Logger.getLogger(
+            this.getClass().getName());
 
     private UserRoadie userRoadie;
     private ResourceRoadie resourceRoadie;
@@ -109,7 +120,7 @@ public class Bd {
         return null;
     }
 
-    public Object queryMetaData( String key, String name,
+    public String queryMetaData( String key, String name,
                                  String authentication){
 
         assert key!= null: "No key to query.";
@@ -122,7 +133,25 @@ public class Bd {
             return null;
         }
 
-        return message.getValues().get( name);
+        if( message.getValues().get(name)== null){
+
+            return "{}";
+        }
+
+        try {
+
+            return this.objectMapper.writeValueAsString(
+                    message.getValues().get(name));
+        } catch (JsonProcessingException e) {
+
+            String msg = String.format("Could not serialize object type '%s' " +
+                    "with state '%s'.",
+                    message.getValues().get(name).getClass(),
+                    message.getValues().get(name).toString());
+            this.logger.log(Level.SEVERE, msg, e);
+
+            throw new RuntimeException(msg, e);
+        }
     }
 
     public void processJob(){
@@ -138,5 +167,10 @@ public class Bd {
     public void clear() {
 
         this.queue.clear();
+    }
+
+    public void setAuthenticator( Authenticator authenticator){
+
+        this.resourceRoadie.setAuthenticator( authenticator);
     }
 }

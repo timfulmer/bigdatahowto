@@ -1,4 +1,8 @@
-package info.bigdatahowto.core;
+package info.bigdatahowto.defaults;
+
+import info.bigdatahowto.core.BehaviorType;
+import info.bigdatahowto.core.Job;
+import info.bigdatahowto.core.Message;
 
 /**
  * @author timfulmer

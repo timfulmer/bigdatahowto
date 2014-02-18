@@ -1,0 +1,182 @@
+<!DOCTYPE html>
+<html>
+<head>
+
+    <!-- Bootstrap stuff -->
+    <meta charset="utf-8">
+    <meta http-equiv="X-UA-Compatible" content="IE=edge">
+    <meta id="viewport" content="width=device-width, initial-scale=1.0">
+    <meta id="description" content="Howto describing a high level view of big data design patterns and architecture.">
+    <meta id="author" content="Tim Fulmer">
+    <link rel="shortcut icon" href="favicon.ico">
+
+    <!-- Bootstrap core CSS -->
+    <link href="css/bootstrap.css" rel="stylesheet">
+    <link href="css/jquery-ui-1.10.4.custom.min.css" rel="stylesheet">
+
+    <!-- HTML5 shim and Respond.js IE8 support of HTML5 elements and media queries -->
+    <!--[if lt IE 9]>
+    <script src="https://oss.maxcdn.com/libs/html5shiv/3.7.0/html5shiv.js"></script>
+    <script src="https://oss.maxcdn.com/libs/respond.js/1.3.0/respond.min.js"></script>
+    <![endif]-->
+
+    <title>BigDataHowto.info</title>
+
+    <!-- favicon stuff from http://realfavicongenerator.net -->
+    <link rel="apple-touch-icon" sizes="57x57" href="/apple-touch-icon-57x57.png">
+    <link rel="apple-touch-icon" sizes="114x114" href="/apple-touch-icon-114x114.png">
+    <link rel="apple-touch-icon" sizes="72x72" href="/apple-touch-icon-72x72.png">
+    <link rel="apple-touch-icon" sizes="144x144" href="/apple-touch-icon-144x144.png">
+    <link rel="apple-touch-icon" sizes="60x60" href="/apple-touch-icon-60x60.png">
+    <link rel="apple-touch-icon" sizes="120x120" href="/apple-touch-icon-120x120.png">
+    <link rel="apple-touch-icon" sizes="76x76" href="/apple-touch-icon-76x76.png">
+    <link rel="apple-touch-icon" sizes="152x152" href="/apple-touch-icon-152x152.png">
+    <link rel="icon" type="image/png" href="/favicon-196x196.png" sizes="196x196">
+    <link rel="icon" type="image/png" href="/favicon-160x160.png" sizes="160x160">
+    <link rel="icon" type="image/png" href="/favicon-96x96.png" sizes="96x96">
+    <link rel="icon" type="image/png" href="/favicon-32x32.png" sizes="32x32">
+    <link rel="icon" type="image/png" href="/favicon-16x16.png" sizes="16x16">
+    <meta id="msapplication-TileColor" content="#da532c">
+    <meta id="msapplication-TileImage" content="/mstile-144x144.png">
+
+    <!-- tf - Put here so Google knows where to find it for verification. -->
+    <script>
+        (function(i,s,o,g,r,a,m){i['GoogleAnalyticsObject']=r;i[r]=i[r]||function(){
+            (i[r].q=i[r].q||[]).push(arguments)},i[r].l=1*new Date();a=s.createElement(o),
+                m=s.getElementsByTagName(o)[0];a.async=1;a.src=g;m.parentNode.insertBefore(a,m)
+        })(window,document,'script','//www.google-analytics.com/analytics.js','ga');
+
+        ga('create', 'UA-47778118-1', 'bigdatahowto.info');
+        ga('send', 'pageview');
+    </script>
+</head>
+<body>
+<div class="container">
+    <div class="row">
+        <div class="col-md-9">
+            <div class="well">
+
+                <div id="bd-demo">
+                    <div>
+                        <span id="bd-latest2">&nbsp;</span><br/>
+                        <span id="bd-latest1">&nbsp;</span><br/>
+                        <span id="bd-latest0">&nbsp;</span><br/>
+                    </div>
+                    <input id="bd-word" type="text" placeholder="Please type some letters." size="25" onkeypress="chkSendWord(event)"/>
+                    <button onclick="sendWord()">Doink!</button>
+                </div>
+
+            </div>
+            <div class="text-center small">copyright &copy; 2014</div>
+        </div>
+    </div>
+</div>
+
+<!-- Bootstrap core JavaScript
+================================================== -->
+<!-- Placed at the end of the document so the pages load faster -->
+<script src="js/jquery-2.1.0.min.js"></script>
+<script src="js/jquery-ui-1.10.4.custom.min.js"></script>
+<script src="js/bootstrap.min.js"></script>
+<script>
+    $(document).ready(function(){
+        $.ajax({
+            url: 'http://bigdatahowto.info/bd/data/wordoink/latest/summary',
+            success: latestSuccess,
+            dataType: 'json',
+            error: function(xhr,error){
+                alert("here");
+                console.log(error);
+            }
+        });
+        (function poll() {
+            setTimeout(function () {
+                $.ajax({
+                    type: 'GET',
+                    dataType: 'json',
+                    url: 'http://bigdatahowto.info/bd/data/wordoink/latest/summary',
+                    success: latestSuccess,
+                    complete: poll
+                });
+            }, 5000);
+        })();
+        $('#bd-word').autocomplete({
+            source: function( req, res){
+                $.ajax({
+                    type: 'GET',
+                    dataType: 'json',
+                    url: 'http://bigdatahowto.info/bd/data/wordoink/'+
+                            req.term+ '/count',
+                    success: function(data){
+                        var tuple= [];
+                        tuple.push( req.term+ ' ('+ data+ ')');
+                        res(tuple);
+                    }
+                });
+            },
+            select: function(event,ui){
+                return false;
+            }
+        });
+        $('#bd-word').focus();
+    });
+    function sendWord(){
+        $.ajax({
+                url: 'http://bigdatahowto.info/bd/data/wordoink/'+ $('#bd-word').val(),
+                type: 'POST',
+                contentType: 'text/plain',
+                processData: false,
+                data: 'function(env,word,meta){\n \
+            // Input validation.\n \
+            if(!word || word.length>7) return false;\n \
+        // Define stem behavior.\n \
+        env.persistFunction= function(env,word,meta){\n \
+            // Update count returned from the GET request.\n \
+            if(!meta.count) meta.count= 0;\n \
+            meta.count++;\n \
+            // Operation successful, persist results.\n \
+            return true;\n \
+        }\n \
+        // Set meta data for this word.\n \
+        if(!meta.count) meta.count= 0;\n \
+        meta.count++;\n \
+        // Decompose word into stems, run persistFunction on each one.\n \
+        var stems= [];\n \
+        for(var i=1; i<word.length;i++){\n \
+            stems.push({key:word.substring(0,i),\n \
+                persist:env.persistFunction});\n \
+        }\n \
+        // update latest record.\n \
+        var latest= {};\n \
+        latest.summary= {};\n \
+        latest.summary.word= word;\n \
+        latest.summary.count=meta.count;\n \
+        stems.push({key:"latest",meta:latest});\n \
+        return stems;\n \
+    }'
+            });
+        $('#bd-word').val(undefined);
+        $( '#bd-word' ).autocomplete( 'close' );
+    }
+    function chkSendWord(event){
+        if(event.charCode== 13){
+           sendWord();
+        }
+    }
+    function latestSuccess(data){
+        if(!data) updateDiv('No data available');
+        else updateDiv(data.word+ ' ('+ data.count+ ')');
+    }
+    var latest= [];
+    function updateDiv(data){
+        if(latest.indexOf(data)== -1){
+            latest.splice(0,0,data);
+            if( latest.length>3) latest.pop();
+            latest.forEach(function(ld,i){
+                $('#bd-latest'+ i).html(ld);
+            })
+        }
+    }
+</script>
+</body>
+</html>

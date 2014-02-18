@@ -6,7 +6,7 @@ package info.bigdatahowto.defaults.js;
  * @author timfulmer
  */
 public class DefaultJavaScriptProcessorTemplate
-        implements JavaScriptProcessorTemplate {
+        extends JavaScriptProcessorTemplate {
 
     private static final String JS_PROCESS_META_TEMPLATE =
             "function parseResults(result){\n" +

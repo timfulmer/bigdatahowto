@@ -5,11 +5,11 @@
 # Home page
 GET         /                       controllers.Application.index
 
-GET         /data/*key              controllers.Application.getData( key:String, authentication:String= null)
-POST        /data/*key              controllers.Application.postData( key:String, authentication:String)
+GET         /data/*key              controllers.Application.getData( key:String)
+POST        /data/*key              controllers.Application.postData( key:String)
 
 GET         /job/poll               controllers.Application.pollJob()
-GET         /job/:jobUuid           controllers.Application.getJob( jobUuid:java.util.UUID, authentication:String)
+GET         /job/:jobUuid           controllers.Application.getJob( jobUuid:java.util.UUID)
 
 PUT         /user/:authentication   controllers.Application.register( authentication:String, userContext:String= null)
 PUT         /user/:userContext/:authentication   controllers.Application.register( authentication:String, userContext:String)

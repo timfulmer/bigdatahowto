@@ -13,6 +13,7 @@ import java.util.List;
 import java.util.UUID;
 import java.util.logging.Logger;
 
+import static org.apache.commons.lang3.StringUtils.isEmpty;
 import static org.apache.commons.collections.CollectionUtils.isEmpty;
 
 /**
@@ -40,9 +41,14 @@ public class SqsQueue extends Queue {
 
         super(resource, cache);
 
+        BdProperties bdProperties= new BdProperties();
         this.amazonSQS= new AmazonSQSClient(
-                new BdProperties().getAwsCredentials("aws.sqs.accessKeyId",
+                bdProperties.getAwsCredentials("aws.sqs.accessKeyId",
                         "aws.sqs.secretKey"));
+        if( !isEmpty( bdProperties.getQueueName())){
+
+            queueName= bdProperties.getQueueName();
+        }
         try{
 
             this.queueUrl= this.amazonSQS.getQueueUrl( queueName).getQueueUrl();

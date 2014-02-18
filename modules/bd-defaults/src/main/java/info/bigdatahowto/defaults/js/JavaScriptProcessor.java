@@ -9,8 +9,6 @@ import java.util.Map;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 
-import static org.apache.commons.collections.MapUtils.isEmpty;
-
 /**
  * Executes message behavior in a JavaScript runtime.
  *
@@ -44,10 +42,8 @@ public class JavaScriptProcessor extends Processor {
     protected ProcessingResult process(Message message,
                                        BehaviorType behaviorType) {
 
-        String script = composeScript(message,
-                this.javaScriptProcessorTemplate.processWithMeta(),
-                this.javaScriptProcessorTemplate.processWithoutMeta(),
-                message.getBehavior().get( behaviorType).getFunction());
+        String script = this.javaScriptProcessorTemplate.composeProcessScript(
+                message, message.getBehavior().get(behaviorType).getFunction());
         Bindings bindings= new SimpleBindings();
 
         return getProcessingResult(message, script, bindings);
@@ -64,38 +60,13 @@ public class JavaScriptProcessor extends Processor {
     @Override
     protected ProcessingResult error(Message message, int tries) {
 
-        String script= composeScript(message,
-                this.javaScriptProcessorTemplate.errorWithMeta(),
-                this.javaScriptProcessorTemplate.errorWithoutMeta(),
-                message.getBehavior().get(BehaviorType.Error).getFunction());
+        String script= this.javaScriptProcessorTemplate.composeErrorScript(
+                message, message.getBehavior().get(
+                        BehaviorType.Error).getFunction());
         Bindings bindings= new SimpleBindings();
         bindings.put( "tries", tries);
 
         return this.getProcessingResult(message, script, bindings);
-    }
-
-    private String composeScript(Message message, String metaTemplate,
-                                 String template, String behavior) {
-
-        String script;
-        if( !isEmpty( message.getValues())){
-
-            StringBuilder meta= new StringBuilder();
-            for( Object key: message.getValues().keySet()){
-
-                meta.append( "meta.");
-                meta.append( key.toString());
-                meta.append("= '");
-                meta.append( message.getValues().get( key).toString());
-                meta.append( "';\n");
-            }
-            script= String.format(metaTemplate, meta.toString(), behavior);
-        }else{
-
-            script= String.format(template, behavior);
-        }
-
-        return script;
     }
 
     @SuppressWarnings("unchecked")

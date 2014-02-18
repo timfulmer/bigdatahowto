@@ -4,16 +4,21 @@ import play.api.mvc._
 import java.util.UUID
 import info.bigdatahowto.api.Bd
 import play.api.libs.concurrent.Execution.Implicits._
+import info.bigdatahowto.defaults.AlwaysAllowAuthenticator
+import play.libs.Json
 
 object Application extends Controller {
 
   val bd:Bd = Bd.productionInstance()
+  // setup for no auth.
+  bd.setAuthenticator( new AlwaysAllowAuthenticator())
+  val authentication= "noauth"
 
   def index = Action {
     BadRequest("Operation not supported.")
   }
 
-  def postData(key: String, authentication:String)= Action{request =>
+  def postData(key: String)= Action{request =>
     val body: Option[String] = request.body.asText
     body.map { text =>
       val jobUuid= UUID.randomUUID()
@@ -24,14 +29,14 @@ object Application extends Controller {
     }
   }
 
-  def getData(key: String, authentication:String) = Action{
+  def getData(key: String) = Action{
     val pivot:Int= key.lastIndexOf( '/')
     val userKey= key.substring( 0, pivot)
     val metaName= key.substring( pivot+ 1)
-    Ok(okString(bd.queryMetaData("//s3/"+userKey,metaName,authentication)))
+    Ok(bd.queryMetaData("//s3/"+userKey,metaName,authentication))
   }
 
-  def getJob(jobUuid: UUID, authentication:String) = Action{
+  def getJob(jobUuid: UUID) = Action{
     Ok(okString(bd.queryJob(jobUuid, authentication)))
   }
 
@@ -45,9 +50,7 @@ object Application extends Controller {
     Ok( "User registration complete.")
   }
 
-  def okString(result:Object):String = {
-    var contents= "null"
-    if(result!=null) contents= result.toString
-    contents
+  def okString(result:Object,defaultString:String= "null"):String = {
+    if(result!= null) result.toString else defaultString
   }
 }

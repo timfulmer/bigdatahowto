@@ -90,4 +90,14 @@ public class BdProperties {
                 "aws.elasticache.host"), Integer.parseInt(
                         this.properties.getProperty( "aws.elasticache.port")));
     }
+
+    public String getQueueName() {
+
+        return this.properties.getProperty( "aws.sqs.queueName");
+    }
+
+    public String getBucketName() {
+
+        return this.properties.getProperty( "aws.s3.bucketName");
+    }
 }

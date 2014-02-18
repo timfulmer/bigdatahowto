@@ -1,132 +1,292 @@
-#Big Data Howto
+#Big Data Framework
 
-A refreshingly technology independent view of Big Data.
+Starting out as a howto illustrating some points on building a modern, scalable
+backend data architecture, BigDataHowto is now BigDataFramework!
+BigDataFramework is happy to offer the following features:
 
-In this first installment we present a pre-Big Data checklist, a little off the
-cuff theory of Big Data, and a design pattern you can apply to your environment
-to solve Big Data problems.
+ - Clear separation of backend scaling concerns from your business;
 
-##What is Big Data?
+ - RESTful interface available to web, mobile and other IP-enabled clients;
 
-Big data is all about performance. Because of volume, concurrency or complexity,
-performance of modern commercial software systems can easily start to slow down.
-Fortunately these classes of Big Data problems are all solved using variations
-of the same design pattern.
+ - Fault tolerant & self healing;
 
-The first step to any potential Big Data problem should be applying classic
-performance optimization techniques. Enhanced logging, detailed code review,
-profiling and other runtime introspection techniques are generally recommended
-before building out a Big Data system. Avoiding Big Data with these techniques
-can save a lot, and makes an eventual Big Data system much more responsive and
-reliable.
+ - Scales to any number of concurrent users;
 
-When traditional optimization techniques have failed, you more than likely have
-a Big Data problem.
+ - Scales to any amount of data;
 
-##Identify the Problem
+ - Provides a simple way to do complex data calculations;
 
-The next step after application optimization is digging into the subsystems
-behind an under-performing use case. Is it slow because of foreign-key
-constraint checking on insert? Perhaps an update is sync'ing to an entire
-cluster synchronously. We are looking for which aspect of the system is
-performing slowly, after having optimized away performance issues in application
-code.
+ - Pluggable architecture, currently implemented on AWS;
 
-It is important to identify which piece of the system and why it is behaving
-slowly for two reasons. A better understanding may uncover an option specific to
-your environment that can easily help. Removing unneeded foreign keys, or
-turning on async updates, are two examples. It may even be discovered the system
-does not need to perform better to meet it's SLAs. Again, it is recommended to
-explore all other options before building a Big Data system.
+ - Integration with a Google AppEngine & other infrastructures, notifications,
+ and more features coming soon!
 
-Once the subsystem causing slowness has been identified and there are no obvious
-solutions, it is time to break up the problem space.
+<insert demo here>
 
-##Why Big Data?
+##Demo
 
-Before we go further, let's take a little departure and explore why we have Big
-Data issues in the first place. Big Data systems as we know them today may be a
-consequence of the "No Free Lunch" theorem from information theory. This
-theorem explores the mathematical relationships between two arbitrary
-algorithms, a large but finite problem space and the performance of the
-algorithms when applied to the problem space.
+Here's a little demo app, running on the BigDataFramework.  Type in some letters
+to see how many times that letter combination has been entered to the system.
+Submit your words to the system, where they will be counted.  See the words
+other users have entered to the system.
 
-The detailed mathematical treatment deals with machine-learning algorithm
-development using techniques like simulated annealing. These techniques are
-somewhat overkill for much of commercial software development today. That said,
-the conclusion is generally applicable to systems dealing with large sets of
-data:
+We'll walk through the steps to build the demo below, as well as walking through
+the features provided by the BigDataFramework.
 
-> "... any elevated performance over one class of problems is offset by
-performance over another class."
+The source for this demo can be found here:
 
-Essentially one algorithm, or series of programming steps, cannot effectively
-handle searching through a lot of data in a general way.
+<url to source in github.>
 
-Big Data exists because a system's data needs have grown beyond what the
-system's current persistent strategy can effectively deliver.
+##Updates
 
-##Break it Up
+Since we don't have notifications using WebSockets in place yet, we'll get
+updates on the latest words submitted to the server by polling for them.  Data
+is stored by the BigDataFramework using keys.  A key looks like
+`//resource/context/key/name`, and consists of four parts:
 
-After optimizing application code and investigating the subsystems involved, it
-is useful to pick one interaction of one subsystem causing the most slowness.
-The goal is to break this one interaction up into several, limiting the scope of
-each interaction's problem space. Let's look at how to separate the slow
-interaction into pieces to speed things up.
+ - A resource name identifying the backing store used to persist the data;
+ - A user context identifying the user who owns the data;
+ - A string representing a unique name for the data;
+ - A string representing the name of the property to access.
 
-Generally a subsystem acting as a data repository can be broken into four
-distinct parts:
+There is a test deployment at `http://bigdatahowto.info/bd/`, configured with no
+authentication and using s3 as the backing store.  Since there is no
+authentication, there are also no safe guards against random users making
+catastrophic changes to your data.  It also makes it much easier to start trying
+stuff out :)
 
-- Writing
-- Long Term Storage
-- Processing
-- Reading
+The resource name part of our key is provided for us as part of the
+BigDataFramework configuration.  We do need to chose a context to keep our data
+separate from others' data.  We'll call this one `wordoink` for fun.  Since this
+key holds a sumary of the latest submission to the system,
+`/wordoink/latest/summary` seems like a good fit.
 
-In a true Big Data system, each of these operations is treated as a separate
-subsystem. If you're familiar with SOA concepts, picture each step as it's own
-set of service interfaces, with a state machine carrying data through the
-system.
+We'll also need a div to show the results.  We're building this demo using
+JQuery to keep things simple.
 
-Here's where the magic happens. Each step can be optimized separately from the
-others. That problematic database insert? Doesn't need to be a database insert
-any longer. It can be a JSON document in redundant memory, until an offline job
-processes it into the database table.
+```
+<div id='bd-demo'></div>
+...
+<script>
+    $.get( 'http://bigdatahowto.info/bd/data/wordoink/latest/summary',
+        function(data){
+            if(!data) updateDiv('No data available');
+            else updateDiv(data.word+ ' - '+ data.count);
+        },
+        'json'
+    );
+    var latest;
+    function updateDiv(data){
+        if( latest!= data){
+            $("#bd-demo").html(data);
+            latest= data;
+        }
+    }
+</script>
+```
 
-Later, when the database table gets too big to support fast read? Change the
-read model to be another document lookup. Processing becomes a transformation
-between document models. Processing starting to take too long? Make it stateless
-to scale.
+This gives us a simple 'No data available' message.  Let's introduce some
+polling so we can see changes as they are happening:
 
-##Big Data Design Pattern
+```
+(function poll() {
+    setTimeout(function () {
+        $.ajax({
+            type: 'GET',
+            dataType: 'json',
+            url: 'http://bigdatahowto.info/bd/data/wordoink/latest/summary',
+            success: function(data){
+                 if(!data) updateDiv('No data available');
+                 else updateDiv(data.word+ ' - '+ data.count);
+             },
+            complete: poll
+        });
+    }, 5000);
+})();
+```
 
-If you are lucky enough to have a system with data needs continuing to grow,
-eventually the system coalesces around four pieces:
+If you're setting up a new system, you'll see the default message.  Otherwise
+you'll see the last message submitted to the system.
 
-- Input models
-- Processing tier
-- Long term storage
-- Runtime models
+##Submit Word
 
-Here is an obligatory diagram:
+Here's where the magic of the BigDataFramework comes in.  We POST a new word to
+the system, defining behavior to run on the server at the same time.  Since
+simply counting words is a bit simplistic, we'll count all word stems as well.
+And we need to update the latest record to get some output.  Here's a little
+JavaScript snippet to get this done on the server:
 
-![BigDataDesignPattern](http://bigdatahowto.info/images/BigDataDesignPattern.png)
+```
+function(env,word,meta){
+    // Input validation.
+    if(!word || word.length>7) return false;
+    // Define stem behavior.
+    env.persistFunction= function(env,word,meta){
+        // Update count returned from the GET request.
+        if(!meta.count) meta.count= 0;
+        meta.count++;
+        // Operation successful, persist results.
+        return true;
+    }
+    // define updating latest
+    env.latestFunction= function(env,word,meta){
+        if(!meta.count) meta.count= 0;
+        meta.count++;
+        // Operation successful, persist results.
+        return true;
+    }
+    // Set meta data for this word.
+    if(!meta.count) meta.count= 0;
+    meta.count++;
+    // Decompose word into stems, run persistFunction on each one.
+    var stems= [];
+    for(var i=1; i<word.length;i++){
+        stems.push({key:word.substring(0,i),
+                persist:env.persistFunction});
+    }
+    // update latest record as well.
+    stems.push({key:"latest",meta:{word:word},persist:env.latestFunction});
+    return stems;
+}
+```
 
-Yes, if you must, you can use Hadoop for the Long Term Storage and Processing
-Tier implementation. In later installments, we'll explore an implementation of
-the above Big Data Design Pattern using the following:
+You'll notice there can be two return types from a JavaScript function
+associated with a key on the system.  A boolean tells the system to persist the
+results of the function evaluation or not.  If a list of additional tuples is
+given, they are fed back through the system as additional messages.
 
-- Java Core Library
-- Play & Scala Runtime Environment
-- SQS for Fault Tolerance and Error Recovery
-- S3 for Long Term Storage
-- Caching with ElastiCache
+Backend behavior is now defined, let's setup the front end.  It's a simple text
+box for right now, with a submit handler:
 
-RESTful JSON services are used to interface with the Input & Read models, as
-well as for internal communication. Eventually the goal is to publish a demo
-application on the site.
+```
+<input id="word" type="text" placeholder="Please type some letters." size="25"/>
+<button onclick="sendWord()">Doink!</button>
+...
+function sendWord(){
+    $.ajax({
+            url: 'http://bigdatahowto.info/bd/data/wordoink/'+ $('#word').val(),
+            type: 'POST',
+            contentType: 'text/plain',
+            processData: false,
+            data: 'function(env,word,meta){\n \
+                // Input validation.\n \
+                if(!word || word.length>7) return false;\n \
+                // Define stem behavior.\n \
+                env.persistFunction= function(env,word,meta){\n \
+                    // Update count returned from the GET request.\n \
+                    if(!meta.count) meta.count= 0;\n \
+                    meta.count++;\n \
+                    // Operation successful, persist results.\n \
+                    return true;\n \
+                }\n \
+                // Set meta data for this word.\n \
+                if(!meta.count) meta.count= 0;\n \
+                meta.count++;\n \
+                // Decompose word into stems, run persistFunction on each one.\n \
+                var stems= [];\n \
+                for(var i=1; i<word.length;i++){\n \
+                    stems.push({key:word.substring(0,i),\n \
+                        persist:env.persistFunction});\n \
+                }\n \
+                // update latest record.\n \
+                var latest= {};\n \
+                latest.summary= {};\n \
+                latest.summary.word= word;\n \
+                latest.summary.count=meta.count;\n \
+                stems.push({key:"latest",meta:latest});\n \
+                return stems;\n \
+            }'
+        });
+    $('#word').val(undefined);
+}
+```
 
-###Reference
+Please note the use of backslashes and new line characters to continue the
+string literal definition across multiple lines.
 
-1 - Wolpert, D.H., Macready, W.G. (1997), ["No Free Lunch Theorems for
-Optimization"](http://ti.arc.nasa.gov/m/profile/dhw/papers/78.pdf), IEEE Transactions on Evolutionary Computation 1,
-67.
+After POST'ing to the server for execution on the backend, the server responds
+with a job identifier, which can be used to query job processing status with a
+GET request to `http://bigdatahowto.info/bd/job/<identifier>`.  For this demo we
+will skip job monitoring.
+
+We clear the text field for a bit of immediate user feedback, and after a bit
+the newly added word is displayed.
+
+#Latest
+
+Showing just one word at a time doesn't give a feel for the messages moving
+through the system.  Let's put in a few more slots:
+
+```
+<div>
+    <span id="bd-latest2">&nbsp;</span><br/>
+    <span id="bd-latest1">&nbsp;</span><br/>
+    <span id="bd-latest0">&nbsp;</span><br/>
+</div>
+...
+var latest= [];
+function updateDiv(data){
+    if(latest.indexOf(data)== -1){
+        latest.splice(0,0,data);
+        if( latest.length>3) latest.pop();
+        latest.forEach(function(ld,i){
+            $('#bd-latest'+ i).html(ld);
+        })
+    }
+}
+```
+
+And a keypress event for the textfield:
+
+```
+function chkSendWord(event){
+    if(event.charCode== 13){
+       sendWord();
+    }
+}
+```
+
+Now go ahead and bang on the keyboard a bit, hitting enter every now and then.
+You should start to see the messages updating occasionally as messages are
+processed through the system, if they're not already.
+
+##Autocomplete
+
+Not really autocomplete, but it would be be nice if the current count for a
+word displayed as it was typed.  Let's import jquery-ui CSS and JS files, and
+add a quick autocomplete method:
+
+```
+<link href="css/jquery-ui-1.10.4.custom.min.css" rel="stylesheet">
+...
+<script src="js/jquery-ui-1.10.4.custom.min.js"></script>
+...
+$('#bd-word').autocomplete({
+    source: function( req, res){
+        $.ajax({
+            type: 'GET',
+            dataType: 'json',
+            url: 'http://bigdatahowto.info/bd/data/wordoink/'+
+                    req.term+ '/count',
+            success: function(data){
+                var tuple= [];
+                tuple.push( req.term+ ' ('+ data+ ')');
+                res(tuple);
+            }
+        });
+    },
+    select: function(event,ui){
+        return false;
+    }
+});
+```
+
+The only gotcha here was returning false from the select function so we don't
+end up posting invalid words like 'testing (12)'.
+
+##Documentation
+
+The remaining documentation follows the old howto format, walking through the
+steps taken to build the initial version of the framework.  This will be moving
+towards architecture, design and detailed documentation at class and package
+levels soon.

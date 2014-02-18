@@ -17,7 +17,7 @@ import java.util.UUID;
  */
 public class ProductionBdTest {
 
-    private static final int SQS_SLEEP_TIME= 125;
+    private static final int SQS_SLEEP_TIME= 250;
     private static final String BEHAVIOR= "function(env,word,meta){\n" +
             "        // Input validation.\n" +
             "        if(!word || word.length>7) return false;\n" +
@@ -55,7 +55,7 @@ public class ProductionBdTest {
     }
 
     @Test
-    public void testBd(){
+    public void testBd() throws InterruptedException {
 
         this.bd.register( "test-authentication", "wordoink");
 
@@ -87,7 +87,11 @@ public class ProductionBdTest {
                     "Bd.queryMetaData is not implemented correctly.";
         }
 
-        this.bd.processJob();
+        for( int i= 0; i< 3; i++){
+
+            this.bd.processJob();
+            Thread.sleep(SQS_SLEEP_TIME);
+        }
 
         job= this.bd.queryJob( jobUuid, authentication);
         assert JobState.Complete== job.getState():
@@ -99,9 +103,10 @@ public class ProductionBdTest {
         this.assertCount(object);
 
         // Initial message should have made 6 more.
-        for( int i= 0; i< 6; i++){
+        for( int i= 0; i< 12; i++){
 
             this.bd.processJob();
+            Thread.sleep( SQS_SLEEP_TIME);
         }
         for( int i= 1; i< word.length(); i++){
 
@@ -151,8 +156,8 @@ public class ProductionBdTest {
             this.bd.processJob();
         }
 
-        Integer count= ((Double) this.bd.queryMetaData( key, "count",
-                authentication)).intValue();
+        Integer count= ((Double) Double.parseDouble(this.bd.queryMetaData( key,
+                "count", authentication))).intValue();
         assert count.equals( 2): "Count is not incrementing.";
 
         // tf - Check on spawned jobs.
@@ -161,8 +166,8 @@ public class ProductionBdTest {
             Thread.sleep( SQS_SLEEP_TIME);
             this.bd.processJob();
         }
-        count= ((Double) this.bd.queryMetaData( makeKey( "tes"),
-                "count", authentication)).intValue();
+        count= ((Double) Double.parseDouble(this.bd.queryMetaData( makeKey(
+                "tes"), "count", authentication))).intValue();
         assert count.equals( 2): "Count is not incrementing.";
     }
 
@@ -325,9 +330,9 @@ public class ProductionBdTest {
     public void assertCount(Object object) {
         assert object!= null:
                 "Bd.queryMetaData is not implemented correctly.";
-        assert object instanceof Double:
+        assert object instanceof String:
                 "Bd.queryMetaData is not implemented correctly.";
-        assert (object).equals( 1.0):
+        assert (object).equals( "1.0"):
                 "Bd.queryMetaData is not implemented correctly.";
     }
 
