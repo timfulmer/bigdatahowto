@@ -171,7 +171,7 @@
                     var markdownHtml= marked(data);
                     var markdownDom= $.parseHTML(markdownHtml);
                     var divId= "jumbotronDiv";
-                    $("<div id='"+divId +"' class='added'></div>"
+                    $("<div id='"+divId +"' class='well added'></div>"
                     ).insertBefore("#commentDiv");
                     markdownDom.forEach(function(element){
                         if( element.nodeName== 'H2'
