@@ -76,13 +76,13 @@ public class DefaultBdTest {
                 "Bd.queryJob is not implemented correctly.";
 
         Object object= this.bd.queryMetaData( key, "count", authentication);
-        assert object== null:
+        assert "{}".equals( object):
                 "Bd.queryMetaData is not implemented correctly.";
         for( int i= 1; i< word.length()- 1; i++){
 
             object= this.bd.queryMetaData( this.makeKey(
                     word.substring( 0, i)), "count", authentication);
-            assert object== null:
+            assert "{}".equals( object):
                     "Bd.queryMetaData is not implemented correctly.";
         }
 
@@ -113,7 +113,7 @@ public class DefaultBdTest {
                 authentication);
         this.bd.processJob();
         object= this.bd.queryMetaData( key, "count", authentication);
-        assert object== null:
+        assert "{}".equals( object):
                 "BehaviorType.Delete is not implemented correctly.";
     }
 
@@ -156,6 +156,15 @@ public class DefaultBdTest {
         count= ((Double) Double.parseDouble(this.bd.queryMetaData(
                 makeKey( "tes"), "count", authentication))).intValue();
         assert count.equals( 2): "Count is not incrementing.";
+    }
+
+    @Test
+    public void testNullGet(){
+
+        String result= this.bd.queryMetaData( this.makeKey( "dummy-word"),
+                "value", "test-authentication");
+        assert result!= null: "Bd.queryMetaData handling null incorrectly.";
+        assert "{}".equals( result): "Bd.queryMetaData handling null incorrectly.";
     }
 
     public void assertCount(Object object) {

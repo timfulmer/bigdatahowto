@@ -130,7 +130,7 @@ public class Bd {
                 new Message( key), authentication, BehaviorType.Get);
         if( message== null || isEmpty(message.getValues())){
 
-            return null;
+            return "{}";
         }
 
         if( message.getValues().get(name)== null){

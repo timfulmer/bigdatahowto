@@ -309,6 +309,9 @@
                         url: 'http://bigdatahowto.info/bd/data/wordoink/'+
                                 req.term+ '/count',
                         success: function(data){
+                            if(isNaN(data)){
+                                data= 'none';
+                            }
                             var tuple= [];
                             tuple.push( req.term+ ' ('+ data+ ')');
                             res(tuple);

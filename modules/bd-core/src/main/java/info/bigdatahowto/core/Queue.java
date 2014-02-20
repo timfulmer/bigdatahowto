@@ -85,7 +85,7 @@ public abstract class Queue {
             }
             job = getJob(resultTuple.uuid);
             job.setQueueIdentifier( resultTuple.identifier);
-        }while( job.getState()!= JobState.Queued);
+        }while( !readyToProcess( job));
         if( this.alreadyProcessingKey(job.getMessageKey().getKey())){
 
             this.logger.info( String.format( "Message with key '%s' already " +
@@ -101,6 +101,28 @@ public abstract class Queue {
         return job;
     }
 
+    /**
+     * Checks if a job is ready to be processed.
+     *
+     * TODO: TESTME
+     *
+     * @param job    Job to check
+     * @return True if job is ready to process.
+     */
+    private boolean readyToProcess(Job job) {
+
+        Calendar calendar= new GregorianCalendar();
+        calendar.add( Calendar.SECOND, -5);
+        if( (job.getState()== JobState.Processing
+                || job.getState()== JobState.Created)
+                && job.getModifiedDate().before( calendar.getTime())){
+
+            job.toQueued();
+        }
+
+        return job.getState()== JobState.Queued;
+    }
+
     private synchronized boolean alreadyProcessingKey(String key){
 
         return !this.cache.put( key, key);
@@ -112,7 +134,7 @@ public abstract class Queue {
         job.toComplete();
         job.setStatus("Job processing complete.");
         this.resource.put(job);
-        this.delete( job.getQueueIdentifier());
+        this.delete(job.getQueueIdentifier());
     }
 
     public Job getJob(UUID uuid) {

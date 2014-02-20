@@ -77,13 +77,13 @@ public class ProductionBdTest {
                 "Bd.queryJob is not implemented correctly.";
 
         Object object= this.bd.queryMetaData( key, "count", authentication);
-        assert object== null:
+        assert "{}".equals( object):
                 "Bd.queryMetaData is not implemented correctly.";
         for( int i= 1; i< word.length()- 1; i++){
 
             object= this.bd.queryMetaData( this.makeKey(
                     word.substring( 0, i)), "count", authentication);
-            assert object== null:
+            assert "{}".equals( object):
                     "Bd.queryMetaData is not implemented correctly.";
         }
 
