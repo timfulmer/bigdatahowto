@@ -3,6 +3,7 @@ package info.bigdatahowto.core;
 import com.fasterxml.jackson.annotation.JsonIgnore;
 import com.fasterxml.jackson.annotation.JsonProperty;
 
+import java.util.Collection;
 import java.util.HashMap;
 import java.util.Map;
 
@@ -175,5 +176,34 @@ public class Message extends AggregateRoot {
                 ", contextOwner='" + contextOwner + '\'' +
                 ", messageOwner='" + messageOwner + '\'' +
                 "} " + super.toString();
+    }
+
+    @SuppressWarnings("unchecked")
+    public void mergeValues(Map values) {
+
+        Map incoming= new HashMap( values.size());
+        for( Object key: values.keySet()){
+
+            if( this.getValues().containsKey( key)){
+
+                if( Map.class.isAssignableFrom( values.get(
+                        key).getClass()) && Map.class.isAssignableFrom(
+                        this.getValues().get(key).getClass())){
+
+                    ((Map)this.getValues().get( key)).putAll( (Map)values.get(
+                            key));
+                }else if( Collection.class.isAssignableFrom( values.get(
+                        key).getClass()) && Collection.class.isAssignableFrom(
+                        this.getValues().get( key).getClass())){
+
+                    ((Collection)this.getValues().get( key)).addAll( (Collection)
+                            values.get( key));
+                }
+            }else{
+
+                incoming.put( key, values.get( key));
+            }
+        }
+        this.getValues().putAll( incoming);
     }
 }

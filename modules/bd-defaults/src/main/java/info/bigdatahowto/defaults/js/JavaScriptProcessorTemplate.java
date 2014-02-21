@@ -2,8 +2,9 @@ package info.bigdatahowto.defaults.js;
 
 import info.bigdatahowto.core.Message;
 
-import java.util.Map;
+import java.util.*;
 
+import static org.apache.commons.lang3.StringUtils.isEmpty;
 import static org.apache.commons.collections.MapUtils.isEmpty;
 
 /**
@@ -39,29 +40,9 @@ public abstract class JavaScriptProcessorTemplate {
             StringBuilder meta= new StringBuilder();
             for( Object key: message.getValues().keySet()){
 
-                String name= String.format("meta.%s", key.toString());
-
-                meta.append( name);
-                meta.append("=");
+                String prefix= "meta";
                 Object value= message.getValues().get( key);
-                if( Map.class.isAssignableFrom(value.getClass())){
-
-                    meta.append( "{};\n");
-                    Map map= (Map)value;
-                    for( Object k: map.keySet()){
-
-                        meta.append( name);
-                        meta.append( '.');
-                        meta.append( k.toString());
-                        meta.append( '=');
-                        meta.append( this.valueString(map.get(k)));
-                        meta.append( ";\n");
-                    }
-                }else{
-
-                    meta.append( this.valueString(value));
-                    meta.append( ";\n");
-                }
+                meta.append(makeJavaScript(value, key, prefix));
             }
             script= String.format(withMeta, meta.toString(),
                     behavior);
@@ -71,6 +52,53 @@ public abstract class JavaScriptProcessorTemplate {
         }
 
         return script;
+    }
+
+    private String makeJavaScript(Object value, Object key, String prefix) {
+
+        String name= key.toString();
+        if( !isEmpty( prefix)){
+
+            name = String.format("%s.%s", prefix, key.toString());
+        }
+        StringBuilder meta= new StringBuilder();
+        meta.append( name);
+        meta.append("=");
+        if( Map.class.isAssignableFrom(value.getClass())){
+
+            meta.append( "{};\n");
+            Map map= (Map)value;
+            for( Object k: map.keySet()){
+
+                meta.append( name);
+                meta.append( '.');
+                meta.append( k.toString());
+                meta.append( '=');
+                meta.append( this.valueString(map.get(k)));
+                meta.append( ";\n");
+            }
+        }else if( List.class.isAssignableFrom( value.getClass())
+                || Set.class.isAssignableFrom( value.getClass())){
+
+            meta.append( "[];\n");
+            Iterator iterator= ((Collection)value).iterator();
+            for( int i= 0; iterator.hasNext(); i++){
+
+                Object item= iterator.next();
+                String k= key+ Integer.toString(i);
+                meta.append( this.makeJavaScript( item, k, null));
+                meta.append( name);
+                meta.append( ".push(");
+                meta.append( k);
+                meta.append( ");\n");
+            }
+        }else{
+
+            meta.append( this.valueString(value));
+            meta.append( ";\n");
+        }
+
+        return meta.toString();
     }
 
     private String valueString( Object value){

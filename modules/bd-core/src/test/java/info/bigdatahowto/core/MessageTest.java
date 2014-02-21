@@ -2,7 +2,9 @@ package info.bigdatahowto.core;
 
 import org.junit.Test;
 
+import java.util.ArrayList;
 import java.util.HashMap;
+import java.util.List;
 import java.util.Map;
 
 import static info.bigdatahowto.core.TestUtils.fakeMessage;
@@ -63,4 +65,173 @@ public class MessageTest {
         assert options== message.getOptions():
                 "Message.options is not set correctly.";
     }
+
+    @SuppressWarnings("unchecked")
+    @Test
+    public void testMergeValues(){
+
+        Message message= new Message();
+        Map map= new HashMap( 1);
+        map.put( "k", "v");
+        message.getValues().put( "key", map);
+
+        Map values= new HashMap( 1);
+        Map value= new HashMap( 1);
+        value.put( "a", "b");
+        values.put( "key", value);
+
+        message.mergeValues( values);
+        assert message.getValues()!= null:
+                "Message.mergeValues implemented incorrectly.";
+        assert message.getValues().get("key")!= null:
+                "Message.mergeValues implemented incorrectly.";
+        assert message.getValues().get( "key") instanceof Map:
+                "Message.mergeValues implemented incorrectly.";
+        assert ((Map) message.getValues().get( "key")).containsKey( "k"):
+                "Message.mergeValues implemented incorrectly.";
+        assert ((Map) message.getValues().get( "key")).get( "k").equals( "v"):
+                "Message.mergeValues implemented incorrectly.";
+        assert ((Map) message.getValues().get( "key")).containsKey( "a"):
+                "Message.mergeValues implemented incorrectly.";
+        assert ((Map) message.getValues().get( "key")).get( "a").equals( "b"):
+                "Message.mergeValues implemented incorrectly.";
+
+        message.getValues().clear();
+        values.clear();
+        List l1= new ArrayList( 1);
+        l1.add( map);
+        message.getValues().put( "key", l1);
+        List l2= new ArrayList( 1);
+        l2.add( value);
+        values.put( "key", l2);
+
+        message.mergeValues( values);
+        assert message.getValues()!= null:
+                "Message.mergeValues implemented incorrectly.";
+        assert message.getValues().get("key")!= null:
+                "Message.mergeValues implemented incorrectly.";
+        assert message.getValues().get( "key") instanceof List:
+                "Message.mergeValues implemented incorrectly.";
+        assert ((List) message.getValues().get( "key")).size()== 2:
+                "Message.mergeValues implemented incorrectly.";
+        assert ((List) message.getValues().get( "key")).get( 0) instanceof Map:
+                "Message.mergeValues implemented incorrectly.";
+        assert ((Map) ((List) message.getValues().get( "key")).get(0)).containsKey( "k"):
+                "Message.mergeValues implemented incorrectly.";
+        assert ((Map) ((List) message.getValues().get( "key")).get(0)).get( "k").equals( "v"):
+                "Message.mergeValues implemented incorrectly.";
+        assert ((List) message.getValues().get( "key")).get( 1) instanceof Map:
+                "Message.mergeValues implemented incorrectly.";
+        assert ((Map) ((List) message.getValues().get( "key")).get(1)).containsKey( "a"):
+                "Message.mergeValues implemented incorrectly.";
+        assert ((Map) ((List) message.getValues().get( "key")).get(1)).get( "a").equals( "b"):
+                "Message.mergeValues implemented incorrectly.";
+
+        // coverage cases
+        message.getValues().clear();
+        values.clear();
+        message.mergeValues( values);
+        assert message.getValues()!= null:
+                "Message.mergeValues implemented incorrectly.";
+        assert isEmpty(message.getValues()):
+                "Message.mergeValues implemented incorrectly.";
+
+        message.getValues().clear();
+        values.clear();
+        values.put( "k", "v");
+        message.mergeValues( values);
+        assert message.getValues()!= null:
+                "Message.mergeValues implemented incorrectly.";
+        assert message.getValues().containsKey( "k"):
+                "Message.mergeValues implemented incorrectly.";
+        assert message.getValues().get( "k").equals( "v"):
+                "Message.mergeValues implemented incorrectly.";
+
+        message.getValues().clear();
+        values.clear();
+        message.getValues().put( "key", map);
+        values.put( "key", l1);
+        message.mergeValues( values);
+        assert message.getValues()!= null:
+                "Message.mergeValues implemented incorrectly.";
+        assert message.getValues().containsKey( "key"):
+                "Message.mergeValues implemented incorrectly.";
+        assert message.getValues().get( "key") instanceof Map:
+                "Message.mergeValues implemented incorrectly.";
+        assert  ((Map) message.getValues().get( "key")).containsKey( "k"):
+                "Message.mergeValues implemented incorrectly.";
+        assert  ((Map) message.getValues().get( "key")).get( "k").equals( "v"):
+                "Message.mergeValues implemented incorrectly.";
+
+        message.getValues().clear();
+        values.clear();
+        message.getValues().put( "key", l2);
+        values.put( "key", map);
+        message.mergeValues( values);
+        assert message.getValues()!= null:
+                "Message.mergeValues implemented incorrectly.";
+        assert message.getValues().containsKey( "key"):
+                "Message.mergeValues implemented incorrectly.";
+        assert message.getValues().get( "key") instanceof List:
+                "Message.mergeValues implemented incorrectly.";
+        assert ((List) message.getValues().get( "key")).size()== 1:
+                "Message.mergeValues implemented incorrectly.";
+        assert ((List) message.getValues().get( "key")).get( 0)== value:
+                "Message.mergeValues implemented incorrectly.";
+    }
+
+    @SuppressWarnings("unchecked")
+    @Test
+    public void testMergeIncoming() {
+        Message message= new Message();
+        Map values= new HashMap( 1);
+        Map value= new HashMap( 1);
+        value.put( "k", "v");
+        values.put( "key", value);
+        message.mergeValues( values);
+        assert message.getValues()!= null:
+                "Message.mergeValues implemented incorrectly.";
+        assert message.getValues().get("key")!= null:
+                "Message.mergeValues implemented incorrectly.";
+        assert message.getValues().get( "key") instanceof Map:
+                "Message.mergeValues implemented incorrectly.";
+        assert ((Map) message.getValues().get( "key")).containsKey( "k"):
+                "Message.mergeValues implemented incorrectly.";
+        assert ((Map) message.getValues().get( "key")).get( "k").equals( "v"):
+                "Message.mergeValues implemented incorrectly.";
+    }
 }
+/*
+function(env,key,meta){
+  // input validation.
+  if(!key) return false;
+  if( key.indexOf('interactions')!=0) return false;
+  var activity= {};
+  var pos=key.indexOf('/')+1;
+  activity.name= key.substring(pos,key.indexOf('/',pos));
+  key= key.substring(pos);
+  var pos=key.indexOf('/')+1;
+  activity.goal= key.substring(pos,key.indexOf('/',pos));
+  if(!meta.activities) meta.activities=[];
+  meta.activities.push(activity);
+  key= key.substring(key.indexOf('/',pos));
+  // decompose path and update suggestions
+  var suggestions= [];
+  pos=key.lastIndexOf('/');
+  do{
+    var suggestion= {};
+    suggestion.latest=[];
+    suggestion.latest.push(activity);
+    key= key.substring(0,pos);
+    suggestions.push({'key':'suggestions/'+key,'meta':suggestion});
+  }while(pos> -1);
+  // update activity
+  suggestions.push({'key':'activities/'+ activity.name+ '/'+ activity.goal});
+  // update activity master record
+  var activityMR= {};
+  activityMR.list= [];
+  activityMR.list.push(activity);
+  suggestions.push({'key':'activities','meta':activityMR});
+  return suggestions;
+}
+ */

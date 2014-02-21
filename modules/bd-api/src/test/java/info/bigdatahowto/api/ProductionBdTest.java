@@ -355,3 +355,44 @@ public class ProductionBdTest {
         return String.format( "//s3/%s/%s", context, word);
     }
 }
+
+/*
+from: http://backendjs.net/bd/data/lifechanger/interactions/smoking/stop/000a3f7f-d6bc-4545-8eba-e6aaef888dd3/2014/02/19/13/10/24
+to:   http://backendjs.net/bd/data/lifechanger/suggestions/%s/%s/latest
+
+function(env,key,meta){
+  // input validation.
+  if(!key) return false;
+  if( key.indexOf('interactions')!=0) return false;
+  // get activity metadata.
+  var activity= {};
+  var pos=key.indexOf('/')+1;
+  activity.name= key.substring(pos,key.indexOf('/',pos));
+  key= key.substring(pos);
+  var pos=key.indexOf('/')+1;
+  activity.goal= key.substring(pos,key.indexOf('/',pos));
+  if(!meta.activities) meta.activities=[];
+  meta.activities.push(activity);
+  key= key.substring(key.indexOf('/',pos)+ 1);
+  // decompose path and update suggestions
+  var messages= [];
+  var activities= {};
+  activities.latest=[];
+  activities.latest.push(activity);
+  do{
+    messages.push({'key':'suggestions/'+key+'/latest','meta':activities});
+    pos=key.lastIndexOf('/');
+    key= key.substring(0,pos);
+  }while(pos> -1);
+  // update activity
+  messages.push({'key':'activities/'+ activity.name+ '/'+ activity.goal+ '/metadata', 'meta':activities});
+  // update activities meta data
+  messages.push({'key':'activities/metadata','meta':activities});
+  return messages;
+}
+
+bb097733-0bc7-4003-b7e2-6d8ac064c80b
+
+Job{messageKey=MessageKey{resourceName='s3', userContext='lifechanger', userKey='interactions/smoking/stop/000a3f7f-d6bc-4545-8eba-e6aaef888dd3/2014/02/19/13/10/24', key='//s3/lifechanger/interactions/smoking/stop/000a3f7f-d6bc-4545-8eba-e6aaef888dd3/2014/02/19/13/10/24'}, tries=1, state=Complete} AggregateRoot{uuid=bff99b0f-8333-4fa6-9564-36edbdf3e94f, creationDate=Fri Feb 21 11:27:53 PST 2014, modifiedDate=Fri Feb 21 11:28:58 PST 2014}
+
+ */

@@ -55,8 +55,6 @@ public class ResourceRoadie {
      * !!WARNING: Potential data loss with concurrent processing and writes to
      * the same message!!
      *
-     * TODO: Introduce retry with exponential backoff up to a short timeout.
-     *
      * @param message New message to store.
      * @param behavior New behavior.
      * @param authentication Authenticates access to messages.
@@ -78,7 +76,7 @@ public class ResourceRoadie {
             this.authenticator.provision( message, authentication);
         }else{
 
-            persistent.getValues().putAll( message.getValues());
+            persistent.mergeValues( message.getValues());
             persistent.setSecure( message.isSecure());
             message= persistent;
         }

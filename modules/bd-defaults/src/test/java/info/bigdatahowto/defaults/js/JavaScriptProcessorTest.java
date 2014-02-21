@@ -6,6 +6,9 @@ import info.bigdatahowto.core.Message;
 import info.bigdatahowto.core.ProcessingResult;
 import org.junit.Test;
 
+import java.util.List;
+import java.util.Map;
+
 /**
  * @author timfulmer
  */
@@ -133,5 +136,35 @@ public class JavaScriptProcessorTest {
         assert processingResult.getMessage().getValues().get(
                 "processing").equals( Boolean.TRUE):
                 "JavaScriptProcessor.message.values does not contain key.";
+    }
+
+    @Test
+    public void testMetaList(){
+
+        Behavior behavior= new Behavior( BehaviorType.Persist,
+                "function(env,key,meta){var item={};item.property='value';meta.items=[item];return true;}");
+        Message message= new Message();
+        message.setKey( "//test-resource/test-context/test-key");
+        message.getValues().put("testing", "testing");
+        message.getBehavior().put( behavior.getBehaviorType(), behavior);
+        JavaScriptProcessor javaScriptProcessor= new JavaScriptProcessor( null, null);
+        ProcessingResult processingResult= javaScriptProcessor.process( message,
+                behavior.getBehaviorType());
+        assert processingResult!= null:
+                "JavaScriptProcessor.process did not return a processingResult.";
+        assert processingResult.getMessage()!= null:
+                "JavaScriptProcessor.message is not populated.";
+        assert processingResult.getMessage().getValues()!= null:
+                "JavaScriptProcessor.message.values is not populated.";
+        assert processingResult.getMessage().getValues().containsKey( "items"):
+                "JavaScriptProcessor.message.values does not contain key.";
+        assert processingResult.getMessage().getValues().get( "items") instanceof List:
+                "JavaScriptProcessor.process processingResult.message.values is incorrect.";
+        assert ((List) processingResult.getMessage().getValues().get( "items")).get(0) instanceof Map :
+                "JavaScriptProcessor.process processingResult.message.values is incorrect.";
+        assert ((Map) ((List) processingResult.getMessage().getValues().get( "items")).get(0)).get("property")!= null:
+                "JavaScriptProcessor.process processingResult.message.values is incorrect.";
+        assert ((Map) ((List) processingResult.getMessage().getValues().get( "items")).get(0)).get("property").equals( "value"):
+                "JavaScriptProcessor.process processingResult.message.values is incorrect.";
     }
 }
