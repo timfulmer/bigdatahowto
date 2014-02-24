@@ -3,6 +3,7 @@ package info.bigdatahowto.defaults;
 import info.bigdatahowto.core.BehaviorType;
 import info.bigdatahowto.core.Job;
 import info.bigdatahowto.core.Message;
+import info.bigdatahowto.core.MessageKey;
 
 /**
  * @author timfulmer
@@ -20,7 +21,7 @@ public class TestUtils {
 
     public static Message fakeMessage() {
 
-        Message message= new Message(MESSAGE_KEY);
+        Message message= new Message(new MessageKey( MESSAGE_KEY));
         message.setContextOwner( MESSAGE_USER_CONTEXT_KEY);
 
         return message;

@@ -15,28 +15,52 @@ import static org.apache.commons.collections.MapUtils.isEmpty;
  */
 public class MessageTest {
 
+    @SuppressWarnings("unchecked")
     @Test
     public void testMessage(){
 
-        Map<String,String> values= new HashMap<>();
-        Map<BehaviorType,Behavior> behaviorMap= new HashMap<>();
-        Map<String,String> options= new HashMap<>();
-        Message message= new Message(
-                TestUtils.MESSAGE_KEY, values, behaviorMap, options);
-
-        this.assertMessage(new MessageKey( TestUtils.MESSAGE_KEY), values,
-                behaviorMap, options, message);
+        MessageKey messageKey= new MessageKey(TestUtils.MESSAGE_KEY);
+        Message message= new Message( messageKey);
+        assert message.getMessageKey()!= null && messageKey.equals(
+                message.getMessageKey()):
+                "Message.key is not set correctly.";
+        assert message.getValues()!= null:
+                "Message.value is not set correctly.";
+        assert message.getValues().isEmpty():
+                "Message.value is not set correctly.";
+        assert message.getBehavior()!= null:
+                "Message.behavior is not set correctly.";
+        assert message.getBehavior().isEmpty():
+                "Message.hasBehavior is not implemented correctly.";
+        assert message.getOptions()!= null:
+                "Message.options is not set correctly.";
+        assert message.getOptions().isEmpty():
+                "Message.options is not set correctly.";
 
         // tf - Test mutation while we're here.
-        MessageKey messageKey= new MessageKey();
+        messageKey= new MessageKey();
         message.setMessageKey(messageKey);
-        message.setValues(values);
+        Map values= new HashMap( 1);
+        values.put( "k", "v");
+        message.setValues( values);
+        Map<BehaviorType,Behavior> behaviorMap= new HashMap<>( 1);
         Behavior behavior= new Behavior(BehaviorType.Persist, "test-value");
         behaviorMap.put(behavior.getBehaviorType(), behavior);
         message.setBehavior( behaviorMap);
+        Map<String,String> options= new HashMap<>( 1);
+        options.put( "name", "value");
         message.setOptions( options);
-
-        this.assertMessage(messageKey, values, behaviorMap, options, message);
+        assert message.getMessageKey()!= null && messageKey.equals(
+                message.getMessageKey()):
+                "Message.key is not set correctly.";
+        assert message.getValues()!= null:
+                "Message.value is not set correctly.";
+        assert values== message.getValues():
+                "Message.value is not set correctly.";
+        assert behaviorMap== message.getBehavior():
+                "Message.behavior is not set correctly.";
+        assert options== message.getOptions():
+                "Message.options is not set correctly.";
     }
 
     @Test
@@ -46,24 +70,6 @@ public class MessageTest {
         assert String.format( "messages/%s",
                 TestUtils.MESSAGE_USER_KEY).equals(message.resourceKey()):
                 "Message.resourceKey is implemented incorrectly.";
-    }
-
-    private void assertMessage(
-            MessageKey messageKey, Map<String, String> values, Map<BehaviorType, Behavior> behavior,
-            Map<String, String> options, Message message) {
-
-        assert message.getMessageKey()!= null && messageKey.equals(
-                message.getMessageKey()):
-                "Message.key is not set correctly.";
-        assert values.equals( message.getValues()):
-                "Message.value is not set correctly.";
-        assert behavior== message.getBehavior() && behavior.equals(
-                message.getBehavior()):
-                "Message.behavior is not set correctly.";
-        assert isEmpty(behavior)!= message.hasBehavior():
-                "Message.hasBehavior is not implemented correctly.";
-        assert options== message.getOptions():
-                "Message.options is not set correctly.";
     }
 
     @SuppressWarnings("unchecked")

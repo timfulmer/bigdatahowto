@@ -5,7 +5,7 @@ import java.util.UUID
 import info.bigdatahowto.api.Bd
 import play.api.libs.concurrent.Execution.Implicits._
 import info.bigdatahowto.defaults.AlwaysAllowAuthenticator
-import play.libs.Json
+import collection.JavaConversions._
 
 object Application extends Controller {
 
@@ -19,10 +19,11 @@ object Application extends Controller {
   }
 
   def postData(key: String)= Action{request =>
+    val values= request.queryString.map { case (k,v) => k -> v.mkString }
     val body: Option[String] = request.body.asText
     body.map { text =>
       val jobUuid= UUID.randomUUID()
-      scala.concurrent.Future { bd.addMessage(jobUuid,"//s3/"+ key,text,"Persist",authentication) }
+      scala.concurrent.Future { bd.addMessage(jobUuid,"//s3/"+ key,text,"Persist",mapAsJavaMap(values),authentication) }
       Ok(okString(jobUuid))
     }.getOrElse {
       BadRequest("Expecting 'Content-Type:text/plain' request header.")

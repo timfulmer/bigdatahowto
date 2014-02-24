@@ -12,6 +12,8 @@ import info.bigdatahowto.defaults.aws.S3Resource;
 import info.bigdatahowto.defaults.aws.SqsQueue;
 import info.bigdatahowto.defaults.js.JavaScriptProcessor;
 
+import java.util.HashMap;
+import java.util.Map;
 import java.util.UUID;
 import java.util.logging.Level;
 import java.util.logging.Logger;
@@ -83,21 +85,31 @@ public class Bd {
     }
 
     public UUID addMessage( UUID jobUuid, String key, String behaviorString,
-                            String behaviorType, String authentication){
+                            String behaviorType,
+                            Map<String,String> values, String authentication){
 
         return this.addMessage( jobUuid, key, behaviorString, behaviorType,
-                authentication, false);
+                values, authentication, false);
     }
 
     public UUID addMessage( UUID jobUuid, String key, String behaviorString,
                             String behaviorTypeString, String authentication,
                             boolean secure){
 
+        return this.addMessage( jobUuid, key, behaviorString,
+                behaviorTypeString, new HashMap( 0), authentication, secure);
+    }
+
+    public UUID addMessage( UUID jobUuid, String key, String behaviorString,
+                            String behaviorTypeString,
+                            Map<String,String> values, String authentication,
+                            boolean secure){
+
         MessageKey messageKey= new MessageKey( key);
         BehaviorType behaviorType= BehaviorType.valueOf( behaviorTypeString);
         Behavior behavior= new Behavior( behaviorType,
                 behaviorString);
-        Message message= new Message( messageKey);
+        Message message= new Message( messageKey, values);
         message.setSecure( secure);
         message= this.resourceRoadie.storeMessage( message, behavior,
                 authentication);
@@ -127,7 +139,8 @@ public class Bd {
         assert name!= null: "No name to query.";
 
         Message message= this.resourceRoadie.accessMessage(
-                new Message( key), authentication, BehaviorType.Get);
+                new Message( new MessageKey(key)), authentication,
+                BehaviorType.Get);
         if( message== null || isEmpty(message.getValues())){
 
             return "{}";

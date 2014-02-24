@@ -57,28 +57,17 @@ public class Message extends AggregateRoot {
         super();
     }
 
-    public Message( String key){
-
-        this(key, new HashMap(0), new HashMap<BehaviorType, Behavior>(0),
-                new HashMap<String, String>(0));
-    }
-
-    public Message( String key, Map values, Map<BehaviorType,Behavior> behavior,
-            Map<String, String> options) {
-
-        this();
-
-        this.setMessageKey( new MessageKey( key));
-        this.setValues( values);
-        this.setBehavior( behavior);
-        this.setOptions(options);
-    }
-
     public Message(MessageKey messageKey) {
+
+        this( messageKey, new HashMap( 0));
+    }
+
+    public Message(MessageKey messageKey, Map values) {
 
         this();
 
         this.setMessageKey( messageKey);
+        this.setValues( values);
     }
 
     public MessageKey getMessageKey() {
