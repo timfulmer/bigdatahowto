@@ -234,7 +234,7 @@ public class ProcessorTest {
         this.processor.setResourceRoadie( this.resourceRoadieMock);
         this.processor.pullJob();
 
-        verify(this.queueMock).error(job);
+        verify(this.queueMock).error(job, true);
     }
 
     @Test

@@ -72,7 +72,7 @@ public class QueueTest {
         assert JobState.Processing== job.getState():
                 "Queue.pop is not updating job state correctly.";
 
-        this.queue.error( job);
+        this.queue.error( job, true);
         assert this.jobs.size()== 0 && !this.jobs.contains( job.getUuid()):
                 "Queue.error is not deleting job correctly.";
         assert JobState.Error== job.getState():
@@ -86,7 +86,7 @@ public class QueueTest {
 
         Job job= fakeJob();
         job.setState( JobState.Processing);
-        this.queue.error(job, "test-message");
+        this.queue.error(job, "test-message", true);
     }
 
     @Test

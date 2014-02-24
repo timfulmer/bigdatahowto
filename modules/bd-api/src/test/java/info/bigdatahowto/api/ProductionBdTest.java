@@ -357,8 +357,8 @@ public class ProductionBdTest {
 }
 
 /*
-from: http://backendjs.net/bd/data/lifechanger/interactions/smoking/stop/000a3f7f-d6bc-4545-8eba-e6aaef888dd3/2014/02/19/13/10/24
-to:   http://backendjs.net/bd/data/lifechanger/suggestions/%s/%s/latest
+from: http://backendjs.net/bd/data/lifechanger/interactions/smoking/stop/000a3f7f-d6bc-4545-8eba-e6aaef888dd3/2014/02/19/13/10/24/metadata
+to:   http://backendjs.net/bd/data/lifechanger/suggestions/%s/latest
 
 function(env,key,meta){
   // input validation.
@@ -374,20 +374,40 @@ function(env,key,meta){
   if(!meta.activities) meta.activities=[];
   meta.activities.push(activity);
   key= key.substring(key.indexOf('/',pos)+ 1);
+  key= key.substring(key.indexOf('/',pos)+ 1);
+  // define metadata activity update behavior
+  env.updateMetadata= function(env,key,meta){
+    var activity= meta.activity;
+    if(!meta.activities) meta.activities= [];
+    var deduped= [];
+    var names= {};
+    meta.activities.forEach(function(a){
+      if(a.name=== activity.name){
+        a.goal= activity.goal;
+      }
+      if(!names[a.name]){
+        deduped.push(a);
+        names[a.name]= true;
+      }
+    });
+    meta.activities= deduped;
+    if(!names[activity.name]){
+      meta.activities.push(activity);
+    }
+  }
   // decompose path and update suggestions
   var messages= [];
   var activities= {};
-  activities.latest=[];
-  activities.latest.push(activity);
+  activities.activity=activity;
   do{
-    messages.push({'key':'suggestions/'+key+'/latest','meta':activities});
+    messages.push({'key':'suggestions/'+key+'/latest','meta':activities, persist:env.updateMetadata});
     pos=key.lastIndexOf('/');
     key= key.substring(0,pos);
   }while(pos> -1);
   // update activity
-  messages.push({'key':'activities/'+ activity.name+ '/'+ activity.goal+ '/metadata', 'meta':activities});
+  messages.push({'key':'activities/'+ activity.name+ '/'+ activity.goal+ '/metadata', 'meta':activities, persist:env.updateMetadata});
   // update activities meta data
-  messages.push({'key':'activities/metadata','meta':activities});
+  messages.push({'key':'activities/metadata','meta':activities, persist:env.updateMetadata});
   return messages;
 }
 

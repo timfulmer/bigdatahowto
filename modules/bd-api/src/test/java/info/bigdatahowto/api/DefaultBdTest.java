@@ -159,6 +159,46 @@ public class DefaultBdTest {
     }
 
     @Test
+    public void testMetaListMod(){
+
+        String behavior= "function(env,key,meta){meta.list=[];meta.list.push('one');meta.list.push('two');return true;}";
+        String key= this.makeKey( "testing");
+        String authentication= "test-authentication";
+        UUID jobUuid= UUID.randomUUID();
+        this.bd.addMessage( jobUuid, key, behavior,
+                BehaviorType.Persist.toString(),authentication);
+        this.bd.processJob();
+        String result= this.bd.queryMetaData( key, "list", authentication);
+        assert result!= null: "List is not behaving.";
+        assert result.equals( "[\"one\",\"two\"]"): "List is not behaving.";
+
+        behavior= "function(env,key,meta){meta.list=[];meta.list.push('three');return true;}";
+        jobUuid= UUID.randomUUID();
+        this.bd.addMessage( jobUuid, key, behavior, BehaviorType.Persist.toString(),
+                authentication);
+        this.bd.processJob();
+        result= this.bd.queryMetaData( key, "list", authentication);
+        assert result!= null: "List is not behaving.";
+        assert result.equals( "[\"three\"]"): "List is not behaving.";
+    }
+
+    @Test( expected = RuntimeException.class)
+    public void testErrors(){
+
+        String behavior= "function(env,key,meta){undefined.list=[];}";
+        String key= this.makeKey( "testing");
+        String authentication= "test-authentication";
+        UUID jobUuid= UUID.randomUUID();
+        this.bd.addMessage( jobUuid, key, behavior,
+                BehaviorType.Persist.toString(),authentication);
+        this.bd.processJob();
+        this.bd.processJob();
+        this.bd.processJob();
+        this.bd.processJob();
+        this.bd.processJob();
+    }
+
+    @Test
     public void testNullGet(){
 
         String result= this.bd.queryMetaData( this.makeKey( "dummy-word"),

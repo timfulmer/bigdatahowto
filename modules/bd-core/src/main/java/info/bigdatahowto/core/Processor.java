@@ -74,16 +74,15 @@ public abstract class Processor {
 
                     processingResult= this.error( message, job.getTries());
                 }
-
-                job.toQueued();
+                this.queue.error( job, msg, false);
             }else{
-
-                this.queue.error( job);
 
                 String msg= String.format(
                         "Attempted processing '%s' tries; job state '%s'.  " +
                                 "Giving up and removing job from queue.",
                         job.toString(), job.getTries());
+
+                this.queue.error( job, msg, true);
                 this.logger.log(Level.SEVERE,msg,t);
 
                 throw new RuntimeException( msg, t);

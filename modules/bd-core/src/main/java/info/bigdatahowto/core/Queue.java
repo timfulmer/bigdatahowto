@@ -113,11 +113,14 @@ public abstract class Queue {
 
         Calendar calendar= new GregorianCalendar();
         calendar.add( Calendar.SECOND, -5);
-        if( (job.getState()== JobState.Processing
-                || job.getState()== JobState.Created)
-                && job.getModifiedDate().before( calendar.getTime())){
-
-            job.toQueued();
+        switch( job.getState()){
+            case Processing:
+            case Created: if( calendar.getTime().before(
+                    job.getModifiedDate())){
+                job.toQueued();
+                break;
+            }
+            case Complete: this.complete( job); break;
         }
 
         return job.getState()== JobState.Queued;
@@ -148,9 +151,9 @@ public abstract class Queue {
      *
      * @param job Job entering error state.
      */
-    public void error( Job job){
+    public void error( Job job, boolean remove){
 
-        this.error( job, null);
+        this.error( job, null, remove);
     }
 
     /**
@@ -160,9 +163,19 @@ public abstract class Queue {
      * @param job Job entering error state.
      * @param msg Error message.
      */
-    public void error( Job job, String msg){
+    public void error( Job job, String msg, boolean remove){
 
         this.cache.remove( job.getMessageKey().getKey());
+        // TODO: TestMe
+        if( !remove){
+
+            job.toQueued();
+            job.setStatus( msg);
+            this.resource.put( job);
+
+            return;
+        }
+
         if( msg== null){
 
             msg= "Job processing encountered an unrecoverable error.  " +
