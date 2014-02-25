@@ -11,6 +11,8 @@ import org.junit.Test;
 
 import java.io.File;
 import java.io.IOException;
+import java.util.HashMap;
+import java.util.Map;
 import java.util.UUID;
 
 /**
@@ -63,7 +65,8 @@ public class DefaultBdTest {
         String authentication= "test-authentication";
         UUID jobUuid= UUID.randomUUID();
         this.bd.addMessage( jobUuid, key, BEHAVIOR,
-                BehaviorType.Persist.toString(), authentication);
+                BehaviorType.Persist.toString(), new HashMap<String,String>( 0),
+                authentication);
         assert jobUuid!= null:
                 "Bd.addMessage is not implemented correctly.";
 
@@ -109,7 +112,8 @@ public class DefaultBdTest {
             this.assertCount(object);
         }
 
-        this.bd.addMessage( jobUuid, key, BEHAVIOR, BehaviorType.Delete.toString(),
+        this.bd.addMessage( jobUuid, key, BEHAVIOR,
+                BehaviorType.Delete.toString(), new HashMap<String,String>( 0),
                 authentication);
         this.bd.processJob();
         object= this.bd.queryMetaData( key, "count", authentication);
@@ -137,9 +141,11 @@ public class DefaultBdTest {
         UUID jobUuid1= UUID.randomUUID();
         UUID jobUuid2= UUID.randomUUID();
         this.bd.addMessage( jobUuid1, key, BEHAVIOR,
-                BehaviorType.Persist.toString(), authentication);
+                BehaviorType.Persist.toString(), new HashMap<String,String>( 0),
+                authentication);
         this.bd.addMessage( jobUuid2, key, BEHAVIOR,
-                BehaviorType.Persist.toString(), authentication);
+                BehaviorType.Persist.toString(), new HashMap<String,String>( 0),
+                authentication);
         this.bd.processJob();
         this.bd.processJob();
 
@@ -166,7 +172,8 @@ public class DefaultBdTest {
         String authentication= "test-authentication";
         UUID jobUuid= UUID.randomUUID();
         this.bd.addMessage( jobUuid, key, behavior,
-                BehaviorType.Persist.toString(),authentication);
+                BehaviorType.Persist.toString(), new HashMap<String,String>( 0),
+                authentication);
         this.bd.processJob();
         String result= this.bd.queryMetaData( key, "list", authentication);
         assert result!= null: "List is not behaving.";
@@ -174,7 +181,8 @@ public class DefaultBdTest {
 
         behavior= "function(env,key,meta){meta.list=[];meta.list.push('three');return true;}";
         jobUuid= UUID.randomUUID();
-        this.bd.addMessage( jobUuid, key, behavior, BehaviorType.Persist.toString(),
+        this.bd.addMessage( jobUuid, key, behavior,
+                BehaviorType.Persist.toString(), new HashMap<String,String>( 0),
                 authentication);
         this.bd.processJob();
         result= this.bd.queryMetaData( key, "list", authentication);
@@ -182,7 +190,7 @@ public class DefaultBdTest {
         assert result.equals( "[\"three\"]"): "List is not behaving.";
     }
 
-    @Test( expected = RuntimeException.class)
+    @Test
     public void testErrors(){
 
         String behavior= "function(env,key,meta){undefined.list=[];}";
@@ -190,12 +198,23 @@ public class DefaultBdTest {
         String authentication= "test-authentication";
         UUID jobUuid= UUID.randomUUID();
         this.bd.addMessage( jobUuid, key, behavior,
-                BehaviorType.Persist.toString(),authentication);
+                BehaviorType.Persist.toString(), new HashMap<String,String>( 0),
+                authentication);
         this.bd.processJob();
         this.bd.processJob();
         this.bd.processJob();
         this.bd.processJob();
-        this.bd.processJob();
+        try{
+            this.bd.processJob();
+            assert false: "Job did not error correctly.";
+        }catch( RuntimeException e){
+
+            // Noop.
+        }
+
+        Job job= this.bd.queryJob( jobUuid, authentication);
+        assert job!= null: "Query job returned null.";
+        assert job.getStatus()!= null: "Errored job has null status.";
     }
 
     @Test
@@ -205,6 +224,70 @@ public class DefaultBdTest {
                 "value", "test-authentication");
         assert result!= null: "Bd.queryMetaData handling null incorrectly.";
         assert "{}".equals( result): "Bd.queryMetaData handling null incorrectly.";
+    }
+
+    @Test
+    public void testInputValues(){
+
+        String behavior= "function(env,key,meta){meta.testString.indexOf('/');}";
+        String key= this.makeKey( "testing");
+        String authentication= "test-authentication";
+        UUID jobUuid= UUID.randomUUID();
+        Map<String,String> params= new HashMap<>( 1);
+        params.put( "testString", "testString");
+        this.bd.addMessage( jobUuid, key, behavior,
+                BehaviorType.Persist.toString(), params,
+                authentication);
+        this.bd.processJob();
+        Job job= this.bd.queryJob( jobUuid, authentication);
+        assert job!= null:
+                "Bd.addMessage is not handling input parameters correctly.";
+        assert job.getState()== JobState.Complete:
+                "Bd.addMessage is not handling input parameters correctly.";
+    }
+
+    @Test
+    public void testInputList(){
+
+        String behavior= "function(env,key,meta){meta.testString.indexOf('/');}";
+        String key= this.makeKey( "testing");
+        String authentication= "test-authentication";
+        UUID jobUuid= UUID.randomUUID();
+        Map<String,String> params= new HashMap<>( 1);
+        String valueString= "[{testString:'testValue'}," +
+                "{testString:'testValue'}]";
+        params.put( "testString", valueString);
+        this.bd.addMessage( jobUuid, key, behavior,
+                BehaviorType.Persist.toString(), params,
+                authentication);
+        this.bd.processJob();
+        Job job= this.bd.queryJob( jobUuid, authentication);
+        assert job!= null:
+                "Bd.addMessage is not handling input parameters correctly.";
+        assert job.getState()== JobState.Complete:
+                "Bd.addMessage is not handling input parameters correctly.";
+        String result= this.bd.queryMetaData( key, "testString",
+                authentication);
+        assert result!= null: "Metadata list is not implemented correctly.";
+        assert result.equals( "\""+ valueString+ "\""):
+                "Metadata list is not implemented correctly.";
+
+        // tf - do it again to test initialized case
+        jobUuid= UUID.randomUUID();
+        this.bd.addMessage( jobUuid, key, behavior,
+                BehaviorType.Persist.toString(), params,
+                authentication);
+        this.bd.processJob();
+        job= this.bd.queryJob( jobUuid, authentication);
+        assert job!= null:
+                "Bd.addMessage is not handling input parameters correctly.";
+        assert job.getState()== JobState.Complete:
+                "Bd.addMessage is not handling input parameters correctly.";
+        result= this.bd.queryMetaData( key, "testString",
+                authentication);
+        assert result!= null: "Metadata list is not implemented correctly.";
+        assert result.equals( "\""+ valueString+ "\""):
+                "Metadata list is not implemented correctly.";
     }
 
     public void assertCount(Object object) {

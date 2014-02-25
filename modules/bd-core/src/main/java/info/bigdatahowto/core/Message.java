@@ -187,10 +187,11 @@ public class Message extends AggregateRoot {
 
                     ((Collection)this.getValues().get( key)).addAll( (Collection)
                             values.get( key));
-                }
-            }else{
+                }else{
 
-                incoming.put( key, values.get( key));
+                    // TODO: TestMe
+                    incoming.put(key, values.get(key));
+                }
             }
         }
         this.getValues().putAll( incoming);

@@ -10,6 +10,7 @@ import org.junit.Ignore;
 import org.junit.Test;
 
 import java.io.IOException;
+import java.util.HashMap;
 import java.util.UUID;
 
 /**
@@ -64,7 +65,8 @@ public class ProductionBdTest {
         String authentication= "test-authentication";
         UUID jobUuid= UUID.randomUUID();
         this.bd.addMessage( jobUuid, key, BEHAVIOR,
-                BehaviorType.Persist.toString(), authentication);
+                BehaviorType.Persist.toString(), new HashMap<String,String>( 0),
+                authentication);
         assert jobUuid!= null:
                 "Bd.addMessage is not implemented correctly.";
 
@@ -130,9 +132,11 @@ public class ProductionBdTest {
         String authentication= "test-authentication";
         UUID jobUuid1= UUID.randomUUID();
         UUID jobUuid2= UUID.randomUUID();
-        this.bd.addMessage( jobUuid1, key, BEHAVIOR, BehaviorType.Persist.toString(),
+        this.bd.addMessage( jobUuid1, key, BEHAVIOR,
+                BehaviorType.Persist.toString(), new HashMap<String,String>( 0),
                 authentication);
-        this.bd.addMessage( jobUuid2, key, BEHAVIOR, BehaviorType.Persist.toString(),
+        this.bd.addMessage( jobUuid2, key, BEHAVIOR,
+                BehaviorType.Persist.toString(), new HashMap<String,String>( 0),
                 authentication);
     }
 
@@ -147,9 +151,11 @@ public class ProductionBdTest {
         UUID jobUuid1= UUID.randomUUID();
         UUID jobUuid2= UUID.randomUUID();
         this.bd.addMessage( jobUuid1, key, BEHAVIOR,
-                BehaviorType.Persist.toString(), authentication);
+                BehaviorType.Persist.toString(), new HashMap<String,String>( 0),
+                authentication);
         this.bd.addMessage( jobUuid2, key, BEHAVIOR,
-                BehaviorType.Persist.toString(), authentication);
+                BehaviorType.Persist.toString(), new HashMap<String,String>( 0),
+                authentication);
         for( int i= 0; i< 4; i++){
 
             Thread.sleep( SQS_SLEEP_TIME);
@@ -182,9 +188,11 @@ public class ProductionBdTest {
         UUID jobUuid1= UUID.randomUUID();
         UUID jobUuid2= UUID.randomUUID();
         this.bd.addMessage( jobUuid1, makeKey( userContext, "message01"),
-                BEHAVIOR, BehaviorType.Persist.toString(), ownerAuthentication);
+                BEHAVIOR, BehaviorType.Persist.toString(),
+                new HashMap<String,String>( 0), ownerAuthentication);
         this.bd.addMessage( jobUuid2, makeKey( userContext, "message02"),
-                BEHAVIOR, BehaviorType.Persist.toString(), ownerAuthentication,
+                BEHAVIOR, BehaviorType.Persist.toString(),
+                new HashMap<String,String>( 0), ownerAuthentication,
                 true);
 
         // tf - Access messages as an unregistered user.
@@ -208,7 +216,8 @@ public class ProductionBdTest {
 
             this.bd.addMessage( UUID.randomUUID(), makeKey( userContext,
                     "message01"), BEHAVIOR,
-                    BehaviorType.Persist.toString(), firstVisitor);
+                    BehaviorType.Persist.toString(),
+                    new HashMap<String,String>( 0), firstVisitor);
             assert false: "Unregistered user can access secure messages.";
         }catch( IllegalAccessError e){
 
@@ -218,7 +227,8 @@ public class ProductionBdTest {
 
             this.bd.addMessage(UUID.randomUUID(), makeKey(userContext,
                     "message01"), BEHAVIOR,
-                    BehaviorType.Delete.toString(), firstVisitor);
+                    BehaviorType.Delete.toString(),
+                    new HashMap<String,String>( 0), firstVisitor);
             assert false: "Unregistered user can access secure messages.";
         }catch( IllegalAccessError e){
 
@@ -228,14 +238,16 @@ public class ProductionBdTest {
         // tf - Create messages as unregistered, and attempt to modify & delete.
         this.bd.addMessage( UUID.randomUUID(), makeKey( userContext,
                 "message03"), BEHAVIOR,
-                BehaviorType.Persist.toString(), firstVisitor);
+                BehaviorType.Persist.toString(), new HashMap<String,String>( 0),
+                firstVisitor);
         this.bd.queryMetaData( makeKey( userContext, "message03"), "count",
                 firstVisitor);
         try{
 
             this.bd.addMessage( UUID.randomUUID(), makeKey( userContext,
                     "message03"), BEHAVIOR,
-                    BehaviorType.Persist.toString(), firstVisitor);
+                    BehaviorType.Persist.toString(),
+                    new HashMap<String,String>( 0), firstVisitor);
             assert false: "Unregistered user can access secure messages.";
         }catch( IllegalAccessError e){
 
@@ -245,7 +257,8 @@ public class ProductionBdTest {
 
             this.bd.addMessage( UUID.randomUUID(), makeKey( userContext,
                     "message03"), BEHAVIOR,
-                    BehaviorType.Delete.toString(), firstVisitor);
+                    BehaviorType.Delete.toString(),
+                    new HashMap<String,String>( 0), firstVisitor);
             assert false: "Unregistered user can access secure messages.";
         }catch( IllegalAccessError e){
 
@@ -261,7 +274,8 @@ public class ProductionBdTest {
 
             this.bd.addMessage( UUID.randomUUID(), makeKey( userContext,
                     "message04"), BEHAVIOR,
-                    BehaviorType.Persist.toString(), firstVisitor);
+                    BehaviorType.Persist.toString(),
+                    new HashMap<String,String>( 0), firstVisitor);
             assert false: "Unregistered user can access secure messages.";
         }catch( IllegalAccessError e){
 
@@ -271,7 +285,8 @@ public class ProductionBdTest {
 
             this.bd.addMessage( UUID.randomUUID(), makeKey( userContext,
                     "message04"), BEHAVIOR,
-                    BehaviorType.Delete.toString(), firstVisitor);
+                    BehaviorType.Delete.toString(),
+                    new HashMap<String,String>( 0), firstVisitor);
             assert false: "Unregistered user can access secure messages.";
         }catch( IllegalAccessError e){
 
@@ -296,16 +311,20 @@ public class ProductionBdTest {
         this.bd.register( firstVisitor, null);
         this.bd.addMessage( UUID.randomUUID(), makeKey( userContext,
                 "message03"), BEHAVIOR,
-                BehaviorType.Persist.toString(), firstVisitor);
+                BehaviorType.Persist.toString(), new HashMap<String,String>( 0),
+                firstVisitor);
         this.bd.addMessage( UUID.randomUUID(), makeKey( userContext,
                 "message03"), BEHAVIOR,
-                BehaviorType.Delete.toString(), firstVisitor);
+                BehaviorType.Delete.toString(), new HashMap<String,String>( 0),
+                firstVisitor);
         this.bd.addMessage( UUID.randomUUID(), makeKey( userContext,
                 "message04"), BEHAVIOR,
-                BehaviorType.Persist.toString(), firstVisitor);
+                BehaviorType.Persist.toString(), new HashMap<String,String>( 0),
+                firstVisitor);
         this.bd.addMessage( UUID.randomUUID(), makeKey( userContext,
                 "message04"), BEHAVIOR,
-                BehaviorType.Delete.toString(), firstVisitor);
+                BehaviorType.Delete.toString(), new HashMap<String,String>( 0),
+                firstVisitor);
 
         // tf - Context owner can see all messages created by second user.
         this.bd.queryMetaData( makeKey( userContext, "message03"), "count",
@@ -315,16 +334,20 @@ public class ProductionBdTest {
         // tf - Modify and delete.
         this.bd.addMessage( UUID.randomUUID(), makeKey( userContext,
                 "message03"), BEHAVIOR,
-                BehaviorType.Persist.toString(), ownerAuthentication);
+                BehaviorType.Persist.toString(), new HashMap<String,String>( 0),
+                ownerAuthentication);
         this.bd.addMessage( UUID.randomUUID(), makeKey( userContext,
                 "message03"), BEHAVIOR,
-                BehaviorType.Delete.toString(), ownerAuthentication);
+                BehaviorType.Delete.toString(), new HashMap<String,String>( 0),
+                ownerAuthentication);
         this.bd.addMessage( UUID.randomUUID(), makeKey( userContext,
                 "message04"), BEHAVIOR,
-                BehaviorType.Persist.toString(), ownerAuthentication);
+                BehaviorType.Persist.toString(), new HashMap<String,String>( 0),
+                ownerAuthentication);
         this.bd.addMessage( UUID.randomUUID(), makeKey( userContext,
                 "message04"), BEHAVIOR,
-                BehaviorType.Delete.toString(), ownerAuthentication);
+                BehaviorType.Delete.toString(), new HashMap<String,String>( 0),
+                ownerAuthentication);
     }
 
     public void assertCount(Object object) {
@@ -355,64 +378,3 @@ public class ProductionBdTest {
         return String.format( "//s3/%s/%s", context, word);
     }
 }
-
-/*
-from: http://backendjs.net/bd/data/lifechanger/interactions/smoking/stop/000a3f7f-d6bc-4545-8eba-e6aaef888dd3/2014/02/19/13/10/24/metadata
-to:   http://backendjs.net/bd/data/lifechanger/suggestions/%s/latest
-
-function(env,key,meta){
-  // input validation.
-  if(!key) return false;
-  if( key.indexOf('interactions')!=0) return false;
-  // get activity metadata.
-  var activity= {};
-  var pos=key.indexOf('/')+1;
-  activity.name= key.substring(pos,key.indexOf('/',pos));
-  key= key.substring(pos);
-  var pos=key.indexOf('/')+1;
-  activity.goal= key.substring(pos,key.indexOf('/',pos));
-  if(!meta.activities) meta.activities=[];
-  meta.activities.push(activity);
-  key= key.substring(key.indexOf('/',pos)+ 1);
-  key= key.substring(key.indexOf('/',pos)+ 1);
-  // define metadata activity update behavior
-  env.updateMetadata= function(env,key,meta){
-    var activity= meta.activity;
-    if(!meta.activities) meta.activities= [];
-    var deduped= [];
-    var names= {};
-    meta.activities.forEach(function(a){
-      if(a.name=== activity.name){
-        a.goal= activity.goal;
-      }
-      if(!names[a.name]){
-        deduped.push(a);
-        names[a.name]= true;
-      }
-    });
-    meta.activities= deduped;
-    if(!names[activity.name]){
-      meta.activities.push(activity);
-    }
-  }
-  // decompose path and update suggestions
-  var messages= [];
-  var activities= {};
-  activities.activity=activity;
-  do{
-    messages.push({'key':'suggestions/'+key+'/latest','meta':activities, persist:env.updateMetadata});
-    pos=key.lastIndexOf('/');
-    key= key.substring(0,pos);
-  }while(pos> -1);
-  // update activity
-  messages.push({'key':'activities/'+ activity.name+ '/'+ activity.goal+ '/metadata', 'meta':activities, persist:env.updateMetadata});
-  // update activities meta data
-  messages.push({'key':'activities/metadata','meta':activities, persist:env.updateMetadata});
-  return messages;
-}
-
-bb097733-0bc7-4003-b7e2-6d8ac064c80b
-
-Job{messageKey=MessageKey{resourceName='s3', userContext='lifechanger', userKey='interactions/smoking/stop/000a3f7f-d6bc-4545-8eba-e6aaef888dd3/2014/02/19/13/10/24', key='//s3/lifechanger/interactions/smoking/stop/000a3f7f-d6bc-4545-8eba-e6aaef888dd3/2014/02/19/13/10/24'}, tries=1, state=Complete} AggregateRoot{uuid=bff99b0f-8333-4fa6-9564-36edbdf3e94f, creationDate=Fri Feb 21 11:27:53 PST 2014, modifiedDate=Fri Feb 21 11:28:58 PST 2014}
-
- */

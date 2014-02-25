@@ -3,6 +3,8 @@ package info.bigdatahowto.core;
 import java.util.*;
 import java.util.logging.Logger;
 
+import static org.apache.commons.lang3.StringUtils.isEmpty;
+
 /**
  * Represents a queuing system.
  *
@@ -167,20 +169,20 @@ public abstract class Queue {
 
         this.cache.remove( job.getMessageKey().getKey());
         // TODO: TestMe
-        if( !remove){
-
-            job.toQueued();
-            job.setStatus( msg);
-            this.resource.put( job);
-
-            return;
-        }
-
-        if( msg== null){
+        if( isEmpty(msg) && isEmpty(job.getStatus())){
 
             msg= "Job processing encountered an unrecoverable error.  " +
                     "Processing has been suspended for this job.";
         }
+        if( !remove){
+
+            job.toQueued();
+            job.setStatus( msg);
+            this.resource.put(job);
+
+            return;
+        }
+
         job.toError();
         job.setStatus( msg);
         this.resource.put(job);

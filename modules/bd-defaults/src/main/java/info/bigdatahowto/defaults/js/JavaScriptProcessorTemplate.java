@@ -14,6 +14,7 @@ import static org.apache.commons.collections.MapUtils.isEmpty;
  * @author timfulmer
  */
 public abstract class JavaScriptProcessorTemplate {
+
     public abstract String processWithMeta();
     public abstract String processWithoutMeta();
     public abstract String errorWithMeta();
@@ -103,9 +104,16 @@ public abstract class JavaScriptProcessorTemplate {
 
     private String valueString( Object value){
 
+        // TODO: TestMe
+        if( value== null) return "undefined";
+
         if( String.class.isAssignableFrom( value.getClass())){
 
-            return String.format( "'%s'", value.toString());
+            String valueString= value.toString();
+            if( !valueString.startsWith("{") && !valueString.startsWith("[")){
+
+                return String.format("'%s'", valueString);
+            }
         }
 
         return value.toString();

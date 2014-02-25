@@ -6,6 +6,7 @@ import info.bigdatahowto.defaults.aws.S3Resource;
 import org.junit.*;
 
 import java.io.IOException;
+import java.util.HashMap;
 import java.util.UUID;
 
 /**
@@ -72,7 +73,7 @@ public class WordoinkTest {
         String authentication= "test-authentication";
         UUID jobUuid1= UUID.randomUUID();
         bd.addMessage( jobUuid1, key, BEHAVIOR, BehaviorType.Persist.toString(),
-                authentication);
+                new HashMap<String,String>( 0), authentication);
         for( int i= 0; i< 16; i++){
 
             Thread.sleep( SQS_SLEEP_TIME);

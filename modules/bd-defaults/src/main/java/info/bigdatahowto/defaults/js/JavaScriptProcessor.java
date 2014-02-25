@@ -95,6 +95,7 @@ public class JavaScriptProcessor extends Processor {
         return processingResult;
     }
 
+    @SuppressWarnings("UnusedDeclaration")
     public void setJavaScriptProcessorTemplate(
             JavaScriptProcessorTemplate javaScriptProcessorTemplate) {
         this.javaScriptProcessorTemplate = javaScriptProcessorTemplate;

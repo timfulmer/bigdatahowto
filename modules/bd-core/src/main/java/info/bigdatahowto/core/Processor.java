@@ -1,10 +1,11 @@
 package info.bigdatahowto.core;
 
+import org.apache.commons.collections.MapUtils;
+
 import java.util.UUID;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 
-import static org.apache.commons.collections.MapUtils.isEmpty;
 import static org.apache.commons.collections.CollectionUtils.isEmpty;
 
 /**
@@ -37,7 +38,6 @@ public abstract class Processor {
      * PLEASE NOTE: Jobs are retried a total of five times.  Any job
      * failing more than five times will be parked in Error state.
      */
-    @SuppressWarnings("unchecked")
     public void pullJob(){
 
         // tf - Pop a new job off the queue.
@@ -56,10 +56,12 @@ public abstract class Processor {
 
             return;
         }
-        ProcessingResult processingResult= null;
         try{
 
-            processingResult= this.process( message, job.getBehaviorType());
+            ProcessingResult processingResult= this.process( message,
+                    job.getBehaviorType());
+            this.handleProcessingResult(job, message, processingResult);
+            this.queue.complete( job);
         }catch( Throwable t){
 
             if( job.getTries()< this.maximumTries){
@@ -72,7 +74,9 @@ public abstract class Processor {
 
                 if( message.getBehavior().containsKey( BehaviorType.Error)){
 
-                    processingResult= this.error( message, job.getTries());
+                    ProcessingResult processingResult= this.error( message,
+                            job.getTries());
+                    this.handleProcessingResult(job, message, processingResult);
                 }
                 this.queue.error( job, msg, false);
             }else{
@@ -80,7 +84,7 @@ public abstract class Processor {
                 String msg= String.format(
                         "Attempted processing '%s' tries; job state '%s'.  " +
                                 "Giving up and removing job from queue.",
-                        job.toString(), job.getTries());
+                        job.getTries(), job.toString());
 
                 this.queue.error( job, msg, true);
                 this.logger.log(Level.SEVERE,msg,t);
@@ -88,43 +92,45 @@ public abstract class Processor {
                 throw new RuntimeException( msg, t);
             }
         }
+    }
 
-        if( processingResult== null
-                || !processingResult.isContinueProcessing()){
+    @SuppressWarnings("unchecked")
+    private void handleProcessingResult(Job job, Message message,
+                                        ProcessingResult processingResult) {
 
-            return;
-        }
-        if( job.getBehaviorType()== BehaviorType.Delete){
+        if( processingResult!= null
+                && processingResult.isContinueProcessing()){
 
-            this.resourceRoadie.deleteMessage(message);
-        }else if( processingResult.getMessage()!= null){
+            if( job.getBehaviorType()== BehaviorType.Delete){
 
-            // tf - Do not need an authentication here since we're updating a
-            //  message already authenticated above.
-            this.resourceRoadie.updateMessage(processingResult.getMessage());
-        }
-        if( !isEmpty( processingResult.getMessages())){
+                this.resourceRoadie.deleteMessage(message);
+            }else if( processingResult.getMessage()!= null){
 
-            for(ProcessingResult.NewMessage newMessage:
-                    processingResult.getMessages()){
+                // tf - Do not need an authentication here since we're updating a
+                //  message already authenticated above.
+                this.resourceRoadie.updateMessage(processingResult.getMessage());
+            }
+            if( !isEmpty( processingResult.getMessages())){
 
-                // TODO: Add test for new message meta data & null behavior.
-                Message m= new Message( newMessage.makeKey());
-                if( !isEmpty( newMessage.values)){
-                    m.getValues().putAll( newMessage.values);
-                }
-                m= this.resourceRoadie.storeMessage(m, newMessage.behavior,
-                        job.getJobOwner());
-                if( newMessage.behavior!= null){
+                for(ProcessingResult.NewMessage newMessage:
+                        processingResult.getMessages()){
 
-                    this.queue.push(UUID.randomUUID(), m,
-                            newMessage.behavior.getBehaviorType(),
+                    // TODO: Add test for new message meta data & null behavior.
+                    Message m= new Message( newMessage.makeKey());
+                    if( !MapUtils.isEmpty(newMessage.values)){
+                        m.getValues().putAll( newMessage.values);
+                    }
+                    m= this.resourceRoadie.storeMessage(m, newMessage.behavior,
                             job.getJobOwner());
+                    if( newMessage.behavior!= null){
+
+                        this.queue.push(UUID.randomUUID(), m,
+                                newMessage.behavior.getBehaviorType(),
+                                job.getJobOwner());
+                    }
                 }
             }
         }
-
-        this.queue.complete(job);
     }
 
     /**
@@ -157,6 +163,7 @@ public abstract class Processor {
         this.resourceRoadie = resourceRoadie;
     }
 
+    @SuppressWarnings("UnusedDeclaration")
     public void setMaximumTries(Integer maximumTries) {
         this.maximumTries = maximumTries;
     }
