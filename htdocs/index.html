@@ -290,17 +290,14 @@
                     console.log(error);
                 }
             });
-            (function poll() {
-                setTimeout(function () {
-                    $.ajax({
-                        type: 'GET',
-                        dataType: 'json',
-                        url: 'http://bigdatahowto.info/bd/data/wordoink/latest/summary',
-                        success: latestSuccess,
-                        complete: poll
-                    });
-                }, 5000);
-            })();
+            setInterval(function () {
+                $.ajax({
+                    type: 'GET',
+                    dataType: 'json',
+                    url: 'http://bigdatahowto.info/bd/data/wordoink/latest/summary',
+                    success: latestSuccess
+                });
+            }, 5000);
             $('#bd-word').autocomplete({
                 source: function( req, res){
                     $.ajax({
