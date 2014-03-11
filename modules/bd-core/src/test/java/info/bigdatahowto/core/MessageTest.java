@@ -156,17 +156,17 @@ public class MessageTest {
         message.getValues().clear();
         values.clear();
         message.getValues().put( "key", map);
-        values.put( "key", l1);
+        values.put( "key", l2);
         message.mergeValues( values);
         assert message.getValues()!= null:
                 "Message.mergeValues implemented incorrectly.";
         assert message.getValues().containsKey( "key"):
                 "Message.mergeValues implemented incorrectly.";
-        assert message.getValues().get( "key") instanceof Map:
+        assert message.getValues().get( "key") instanceof List:
                 "Message.mergeValues implemented incorrectly.";
-        assert  ((Map) message.getValues().get( "key")).containsKey( "k"):
+        assert ((List) message.getValues().get( "key")).size()== 1:
                 "Message.mergeValues implemented incorrectly.";
-        assert  ((Map) message.getValues().get( "key")).get( "k").equals( "v"):
+        assert ((List) message.getValues().get( "key")).get( 0)== value:
                 "Message.mergeValues implemented incorrectly.";
 
         message.getValues().clear();
@@ -178,11 +178,11 @@ public class MessageTest {
                 "Message.mergeValues implemented incorrectly.";
         assert message.getValues().containsKey( "key"):
                 "Message.mergeValues implemented incorrectly.";
-        assert message.getValues().get( "key") instanceof List:
+        assert message.getValues().get( "key") instanceof Map:
                 "Message.mergeValues implemented incorrectly.";
-        assert ((List) message.getValues().get( "key")).size()== 1:
+        assert  ((Map) message.getValues().get( "key")).containsKey( "k"):
                 "Message.mergeValues implemented incorrectly.";
-        assert ((List) message.getValues().get( "key")).get( 0)== value:
+        assert  ((Map) message.getValues().get( "key")).get( "k").equals( "v"):
                 "Message.mergeValues implemented incorrectly.";
     }
 

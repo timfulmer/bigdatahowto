@@ -290,6 +290,43 @@ public class DefaultBdTest {
                 "Metadata list is not implemented correctly.";
     }
 
+    @Test
+    public void testPathParameter(){
+
+        String key= this.makeKey( "testing");
+        UUID jobUuid= UUID.randomUUID();
+        String authentication= "test-authentication";
+        this.bd.addMessage( jobUuid, key,
+                "function(env,key,meta){meta.name='value'; return true;}",
+                BehaviorType.Persist.name(), authentication, false);
+        this.bd.processJob();
+        Job job= this.bd.queryJob( jobUuid, authentication);
+        assert job!= null:
+                "Bd.addMessage is not handling input parameters correctly.";
+        assert job.getState()== JobState.Complete:
+                "Bd.addMessage is not handling input parameters correctly.";
+
+        String behavior= "function(env,key,meta){meta.count=meta.testPath.split('/').length; return true}";
+        jobUuid= UUID.randomUUID();
+        Map<String,String> params= new HashMap<>( 1);
+        String path= "2014/02/25/08/53";
+        params.put( "testPath", path);
+        this.bd.addMessage( jobUuid, key, behavior,
+                BehaviorType.Persist.toString(), params,
+                authentication);
+        this.bd.processJob();
+        job= this.bd.queryJob( jobUuid, authentication);
+        assert job!= null:
+                "Bd.addMessage is not handling input parameters correctly.";
+        assert job.getState()== JobState.Complete:
+                "Bd.addMessage is not handling input parameters correctly.";
+        String result= this.bd.queryMetaData( key, "count",
+                authentication);
+        assert result!= null: "Metadata list is not implemented correctly.";
+        assert result.equals( "5.0"):
+                "Metadata list is not implemented correctly.";
+    }
+
     public void assertCount(Object object) {
         assert object!= null:
                 "Bd.queryMetaData is not implemented correctly.";

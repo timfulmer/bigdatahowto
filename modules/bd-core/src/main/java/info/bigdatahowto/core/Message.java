@@ -181,19 +181,21 @@ public class Message extends AggregateRoot {
 
                     ((Map)this.getValues().get( key)).putAll( (Map)values.get(
                             key));
+                    continue;
                 }else if( Collection.class.isAssignableFrom( values.get(
                         key).getClass()) && Collection.class.isAssignableFrom(
                         this.getValues().get( key).getClass())){
 
                     ((Collection)this.getValues().get( key)).addAll( (Collection)
                             values.get( key));
-                }else{
-
-                    // TODO: TestMe
-                    incoming.put(key, values.get(key));
+                    continue;
                 }
             }
+
+            // TODO: TestMe
+            incoming.put(key, values.get(key));
         }
+
         this.getValues().putAll( incoming);
     }
 }
